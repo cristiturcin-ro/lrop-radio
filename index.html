@@ -36,15 +36,6 @@
             text-align: center;
             margin-bottom: 10px;
         }
-        .knobs-container {
-            display: flex;
-            justify-content: center;
-            width: 80%;
-            align-items: center;
-        }
-        .knob {
-            width: 100px;
-        }
         .start-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -62,26 +53,17 @@
         <h2>LROP Tower/Approach Radio</h2>
         <div class="display">ICAO: LROP | IATA: OTP<br>Frequency: 119.1 MHz</div>
         <button class="start-button" id="startButton">Start Radio</button>
-        <div class="knobs-container">
-            <label>Volume</label>
-            <input type="range" min="0" max="1" step="0.1" value="1" class="knob" id="volumeKnob">
-        </div>
         <audio id="radioPlayer" controls>
             <source id="streamSource" src="https://d.liveatc.net/lrop" type="audio/mpeg">
         </audio>
     </div>
     <script>
         const radioPlayer = document.getElementById("radioPlayer");
-        const volumeKnob = document.getElementById("volumeKnob");
         const startButton = document.getElementById("startButton");
 
         startButton.addEventListener("click", () => {
             radioPlayer.play();
             startButton.style.display = "none"; // Hide the button after starting
-        });
-
-        volumeKnob.addEventListener("input", () => {
-            radioPlayer.volume = volumeKnob.value;
         });
     </script>
 </body>
