@@ -37,10 +37,9 @@
             text-align: center;
             margin-bottom: 10px;
         }
-        .start-button {
+        .start-button, .next-button {
             position: absolute;
             top: 10px;
-            right: 10px;
             padding: 10px 20px;
             font-size: 18px;
             background-color: black;
@@ -49,12 +48,19 @@
             border-radius: 0;
             cursor: pointer;
         }
+        .start-button {
+            right: 10px;
+        }
+        .next-button {
+            left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="radio-container">
         <button class="start-button" id="startButton">Start</button>
-        <div class="display">ICAO: LROP | IATA: OTP<br>LROP Tower/Approach Radio<br>Frequency: 119.1 MHz</div>
+        <button class="next-button" id="nextButton">Next</button>
+        <div class="display" id="display">ICAO: LROP | IATA: OTP<br>LROP Tower/Approach Radio<br>Frequency: 119.1 MHz</div>
         <audio id="radioPlayer" controls>
             <source id="streamSource" src="https://d.liveatc.net/lrop" type="audio/mpeg">
         </audio>
@@ -62,11 +68,31 @@
     <script>
         const radioPlayer = document.getElementById("radioPlayer");
         const startButton = document.getElementById("startButton");
+        const nextButton = document.getElementById("nextButton");
+        const display = document.getElementById("display");
+        const streamSource = document.getElementById("streamSource");
+
+        const stations = [
+            { freq: "119.1", name: "LROP Tower", stream: "https://d.liveatc.net/lrop" },
+            { freq: "125.7", name: "LROP Approach", stream: "https://d.liveatc.net/lrop_app" },
+            { freq: "121.9", name: "LROP Ground", stream: "https://d.liveatc.net/lrop_gnd" }
+        ];
+
+        let currentStationIndex = 0;
 
         startButton.addEventListener("click", () => {
             radioPlayer.play();
             startButton.style.display = "none"; // Hide the button after starting
         });
+
+        nextButton.addEventListener("click", () => {
+            currentStationIndex = (currentStationIndex + 1) % stations.length;
+            display.innerHTML = `ICAO: LROP | IATA: OTP<br>${stations[currentStationIndex].name}<br>Frequency: ${stations[currentStationIndex].freq} MHz`;
+            streamSource.src = stations[currentStationIndex].stream;
+            radioPlayer.load();
+            radioPlayer.play();
+        });
     </script>
 </body>
 </html>
+
