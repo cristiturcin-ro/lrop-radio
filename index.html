@@ -78,17 +78,24 @@
         const startButton = document.getElementById("startButton");
         const canvas = document.getElementById("visualizer");
         const ctx = canvas.getContext("2d");
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const analyser = audioCtx.createAnalyser();
-        const source = audioCtx.createMediaElementSource(radioPlayer);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        analyser.fftSize = 256;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
+        let audioCtx;
+        let analyser;
+        let source;
+        
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(radioPlayer);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 256;
+            draw();
+        }
+        
         function draw() {
             requestAnimationFrame(draw);
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
             ctx.fillStyle = "black";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -103,10 +110,12 @@
         }
 
         startButton.addEventListener("click", () => {
-            radioPlayer.play();
-            startButton.style.display = "none";
+            if (!audioCtx) {
+                initAudio();
+            }
             audioCtx.resume().then(() => {
-                draw();
+                radioPlayer.play();
+                startButton.style.display = "none";
             });
         });
     </script>
