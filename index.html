@@ -49,26 +49,12 @@
             border-radius: 0;
             cursor: pointer;
         }
-        .visualizer-container {
-            width: 90%;
-            height: 50px;
-            background: black;
-            border: 2px solid green;
-            margin-top: 10px;
-        }
-        canvas {
-            width: 100%;
-            height: 100%;
-        }
     </style>
 </head>
 <body>
     <div class="radio-container">
         <button class="start-button" id="startButton">Start</button>
         <div class="display" id="display">ICAO: LROP | IATA: OTP<br>LROP Tower/Approach Radio<br>Frequency: 119.1 MHz</div>
-        <div class="visualizer-container">
-            <canvas id="visualizer"></canvas>
-        </div>
         <audio id="radioPlayer" controls>
             <source id="streamSource" src="https://d.liveatc.net/lrop" type="audio/mpeg">
         </audio>
@@ -76,47 +62,10 @@
     <script>
         const radioPlayer = document.getElementById("radioPlayer");
         const startButton = document.getElementById("startButton");
-        const canvas = document.getElementById("visualizer");
-        const ctx = canvas.getContext("2d");
-        let audioCtx;
-        let analyser;
-        let source;
-        
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            source = audioCtx.createMediaElementSource(radioPlayer);
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            analyser.fftSize = 256;
-            draw();
-        }
-        
-        function draw() {
-            requestAnimationFrame(draw);
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            analyser.getByteFrequencyData(dataArray);
-            ctx.fillStyle = "black";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const barWidth = (canvas.width / bufferLength) * 2.5;
-            let x = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                const barHeight = dataArray[i] / 2;
-                ctx.fillStyle = "limegreen";
-                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                x += barWidth + 1;
-            }
-        }
 
         startButton.addEventListener("click", () => {
-            if (!audioCtx) {
-                initAudio();
-            }
-            audioCtx.resume().then(() => {
-                radioPlayer.play();
-                startButton.style.display = "none";
-            });
+            radioPlayer.play();
+            startButton.style.display = "none"; // Hide the button after starting
         });
     </script>
 </body>
