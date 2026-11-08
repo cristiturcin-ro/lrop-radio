@@ -26,14 +26,16 @@ body{
   min-height:100vh;padding:16px;
 }
 #fit{position:relative}
-#stage{position:absolute;left:0;top:0;width:1000px;height:470px;transform-origin:0 0}
+#stage{position:absolute;left:0;top:0;width:1000px;height:520px;transform-origin:0 0}
+/* everything under the display is shifted down by the bandscope height */
+.low{position:absolute;left:0;top:48px;width:1000px;height:0}
 
 /* ---------- case ---------- */
-.case{position:absolute;left:0;top:0;width:1000px;height:440px;border-radius:14px;
+.case{position:absolute;left:0;top:0;width:1000px;height:488px;border-radius:14px;
   background:linear-gradient(180deg,var(--case-1) 0%,#212226 40%,var(--case-2) 100%);
   box-shadow:0 2px 0 var(--case-edge) inset,0 -2px 0 #0c0c0e inset,0 25px 40px rgba(0,0,0,.6),0 0 0 2px #0e0f11;}
 .case::before{content:"";position:absolute;inset:8px;border-radius:10px;border:1px solid rgba(255,255,255,.04)}
-.foot{position:absolute;top:436px;width:70px;height:28px;border-radius:0 0 10px 10px;
+.foot{position:absolute;top:484px;width:70px;height:28px;border-radius:0 0 10px 10px;
   background:linear-gradient(180deg,#141416,#050506)}
 .abs{position:absolute}
 
@@ -45,8 +47,7 @@ body{
   background:linear-gradient(180deg,#26272b,#1a1b1e);box-shadow:0 1px 0 #3b3d42 inset,0 0 0 1px #0d0d0f;
   text-align:center;font:600 13px/26px "Barlow Condensed";letter-spacing:3px;color:#e6e6e6}
 
-/* speaker */
-.speaker{left:22px;top:58px;width:200px;height:222px;border-radius:8px;
+.speaker{left:22px;top:58px;width:200px;height:270px;border-radius:8px;
   background:repeating-linear-gradient(180deg,#0b0b0d 0 7px,#2e3034 7px 9px,#1a1b1e 9px 13px);
   box-shadow:0 0 0 2px #0c0c0e,0 2px 0 2px #34363b}
 
@@ -62,7 +63,6 @@ button{font-family:inherit}
 .btn.on::after{content:"";position:absolute;right:5px;top:5px;width:5px;height:5px;border-radius:50%;
   background:#ffb04a;box-shadow:0 0 6px #ff9a1f}
 .key{width:70px;height:34px;font-size:20px}
-.key small{position:absolute;left:7px;top:9px;font-size:10px;color:var(--accent);letter-spacing:0}
 .key b{position:absolute;right:10px;top:4px;font-weight:600}
 .small{height:21px;width:54px;font-size:11px;border-radius:4px}
 .mode-lbl{position:absolute;width:30px;text-align:center;font:600 12px/1 "Barlow Condensed";color:#eee;letter-spacing:.5px}
@@ -81,9 +81,9 @@ button{font-family:inherit}
 .led.on{background:#ff9a1f;box-shadow:0 0 8px #ff8a10}
 
 /* ---------- display ---------- */
-.bezel{left:236px;top:46px;width:492px;height:204px;border-radius:8px;
+.bezel{left:236px;top:46px;width:492px;height:252px;border-radius:8px;
   background:linear-gradient(180deg,#0f1012,#1c1d20);box-shadow:0 0 0 2px #050506,0 2px 0 2px #2f3135}
-.lcd{left:246px;top:56px;width:362px;height:184px;border-radius:4px;overflow:hidden;
+.lcd{left:246px;top:56px;width:362px;height:232px;border-radius:4px;overflow:hidden;
   background:var(--lcd-off);box-shadow:0 0 0 3px #0a0a0a inset,0 6px 14px rgba(0,0,0,.6) inset;
   transition:background .35s,filter .2s;color:var(--seg-on)}
 .lcd.on{background:radial-gradient(ellipse at 50% 40%,var(--lcd-on-1),var(--lcd-on-2) 85%)}
@@ -108,11 +108,12 @@ button{font-family:inherit}
 .bars{display:flex;gap:2px;align-items:flex-end;height:14px}
 .bars i{flex:1;height:100%;background:var(--seg-ghost)}
 .bars i.on{background:var(--seg-on)}
-.bars i.over{height:100%}
-.textline{position:absolute;left:14px;bottom:6px;font:22px/1 "VT323",monospace;letter-spacing:1px;white-space:pre}
+.scope{position:absolute;left:12px;top:156px;width:338px;height:46px;cursor:crosshair;
+  border-top:1px solid rgba(28,16,6,.35);border-bottom:1px solid rgba(28,16,6,.35)}
+.scope-lbl{position:absolute;top:157px;font:700 9px/1 "Barlow Condensed";opacity:.75!important}
+.textline{position:absolute;left:14px;bottom:5px;font:22px/1 "VT323",monospace;letter-spacing:1px;white-space:pre}
 
 /* ---------- knobs ---------- */
-.knob-wrap{position:absolute;border-radius:50%;touch-action:none}
 .ticks i{position:absolute;width:4px;height:4px;border-radius:50%;background:#cfcfcf;margin:-2px 0 0 -2px}
 .knob{position:absolute;border-radius:50%;cursor:ns-resize;touch-action:none}
 .knob.outer{background:repeating-conic-gradient(#2c2d31 0 4deg,#141517 4deg 8deg);
@@ -130,9 +131,8 @@ button{font-family:inherit}
   background:radial-gradient(circle at 42% 35%,#2e3034,#0f1012 75%);box-shadow:0 0 0 2px #050506,0 -2px 4px rgba(255,255,255,.06) inset}
 .dimple{position:absolute;left:50%;top:22px;width:44px;height:44px;margin-left:-22px;border-radius:50%;
   background:radial-gradient(circle at 55% 60%,#2b2d31,#060607 70%);box-shadow:0 1px 1px rgba(255,255,255,.08)}
-.lockbtn{left:925px;top:392px;width:38px;height:16px;font-size:9px}
 
-.hint{position:absolute;left:0;top:478px;width:1000px;text-align:center;font:500 13px/1.4 "Barlow Condensed";color:#8a8c91;letter-spacing:.5px}
+.hint{position:absolute;left:0;top:526px;width:1000px;text-align:center;font:500 13px/1.4 "Barlow Condensed";color:#8a8c91;letter-spacing:.5px}
 #stream{display:none}
 </style>
 </head>
@@ -141,16 +141,10 @@ button{font-family:inherit}
   <div class="foot" style="left:60px"></div><div class="foot" style="left:870px"></div>
   <div class="case"></div>
 
-  <div class="abs logo">LROP<small>OTP</small></div>
-  <div class="abs model">AR-119</div>
-  <div class="abs title-bar">AIRBAND COMMUNICATIONS RECEIVER</div>
+  <div class="abs logo" id="logo"></div>
+  <div class="abs model" id="model"></div>
+  <div class="abs title-bar" id="subtitle"></div>
   <div class="abs speaker"></div>
-
-  <div class="lbl" style="left:30px;top:298px;width:68px">PHONES</div>
-  <div class="abs jack"></div>
-  <div class="lbl power-lbl">POWER</div>
-  <button class="btn power" id="power" aria-label="Power"></button>
-  <div class="abs led" id="led"></div>
 
   <!-- display -->
   <div class="abs bezel"></div>
@@ -178,37 +172,66 @@ button{font-family:inherit}
       <div class="scale" id="scale"></div>
       <div class="bars" id="bars"></div>
     </div>
+    <span class="ind on" id="i-span" style="left:276px;top:130px">SPAN</span>
+    <span class="ind on" id="i-spanv" style="left:276px;top:142px">±250k</span>
+    <canvas class="scope" id="scope" title="Bandscope – click pentru acord"></canvas>
     <div class="textline" id="text"></div>
     <div class="glass"></div>
   </div>
 
-  <!-- mode buttons inside bezel -->
   <div id="modes"></div>
 
-  <!-- knobs -->
-  <div class="lbl" style="left:244px;top:262px;width:96px">AF ◦ SQL</div>
-  <div class="lbl" style="left:352px;top:262px;width:80px">DIMMER</div>
-  <div id="knobs"></div>
-  <button class="btn" id="clock" style="left:448px;top:276px;width:66px;height:30px;font-size:12px">CLOCK</button>
-  <button class="btn" id="lock" style="left:448px;top:328px;width:66px;height:30px;font-size:12px">LOCK</button>
+  <div class="low">
+    <div class="lbl" style="left:30px;top:298px;width:68px">PHONES</div>
+    <div class="abs jack"></div>
+    <div class="lbl power-lbl">POWER</div>
+    <button class="btn power" id="power" aria-label="Power"></button>
+    <div class="abs led" id="led"></div>
 
-  <div class="dial abs" id="dial"><div class="dial-face" id="dialFace"><div class="dimple"></div></div></div>
+    <div class="lbl" style="left:244px;top:262px;width:96px">AF ◦ SQL</div>
+    <div class="lbl" style="left:352px;top:262px;width:80px">DIMMER</div>
+    <div id="knobs"></div>
+    <button class="btn" id="clock" style="left:448px;top:276px;width:66px;height:30px;font-size:12px">CLOCK</button>
+    <button class="btn" id="lock" style="left:448px;top:328px;width:66px;height:30px;font-size:12px">LOCK</button>
 
-  <div id="bottom"></div>
+    <div class="dial abs" id="dial"><div class="dial-face" id="dialFace"><div class="dimple"></div></div></div>
+    <div id="bottom"></div>
+  </div>
   <div id="keys"></div>
 
-  <div class="hint" id="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · tastatură: cifre + ENT · ↑ ↓ acord · Esc = CLR</div>
+  <div class="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · click pe spectru = acord · tastatură: cifre + ENT · ↑ ↓ acord · Esc = CLR</div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
 
 <script>
 (() => {
-const STREAM_URL = "https://d.liveatc.net/lrop";
-const LIVE_KHZ = 119100;               // canalul pe care e mapat stream-ul LiveATC
+/* ================= CONFIGURARE =================
+   Schimbă aici numele de pe carcasă și canalele.
+   Stream-urile sunt feed-uri reale LiveATC (verificate);
+   frecvențele sunt cele pe care le „pui” pe dial – verifică-le / ajustează-le după AIP. */
+const CONFIG = {
+  brand:    'LROP',
+  brandSub: 'OTP',
+  model:    'AR-119',
+  subtitle: 'AIRBAND COMMUNICATIONS RECEIVER',
+};
+const CHANNELS = [
+  { f:119100, name:'LROP APP/TWR/ACC', mount:'lrop'     },
+  { f:120900, name:'LROP TOWER',       mount:'lrop_twr' },
+  { f:121850, name:'LROP GROUND',      mount:'lrop2'    },
+  { f:118300, name:'LRCL CLUJ',        mount:'lrcl'     },
+  { f:118400, name:'LRTR TIMISOARA',   mount:'lrtr'     },
+];
+const STREAM_BASE = 'https://d.liveatc.net/';
 const BAND = [108000, 136975];
+const SPANS = [200, 500, 1000, 2500, 5000];   // kHz, lățimea totală a spectrului
+
 const $ = id => document.getElementById(id);
 const stage = $('stage'), lcd = $('lcd'), audio = $('stream');
+$('logo').innerHTML = `${CONFIG.brand}<small>${CONFIG.brandSub}</small>`;
+$('model').textContent = CONFIG.model;
+$('subtitle').textContent = CONFIG.subtitle;
 
 /* ---------------- persistence (best effort) ---------------- */
 const store = {
@@ -218,17 +241,14 @@ const store = {
 
 /* ---------------- state ---------------- */
 const S = {
-  power:false, freq:store.get('freq', LIVE_KHZ), step:25, mode:'AM',
-  vfo:true, mem:store.get('mem', null), mch:0,
+  power:false, freq:store.get('freq', CHANNELS[0].f), step:25, mode:'AM',
+  vfo:true, mem:store.get('mem2', null), mch:0,
   af:store.get('af', .6), sql:store.get('sql', .15), dim:store.get('dim', 1),
   pamp:false, att:false, nb:false, nr:false, anf:false, agc:'F', fil:2,
-  lock:false, scan:null, entry:null, err:0, textMode:0,
-  streamState:'OFF', level:0
+  lock:false, scan:null, entry:null, err:0, textMode:0, span:3,
+  streamState:'OFF', level:0, ch:null
 };
-if(!Array.isArray(S.mem)) S.mem = [
-  {f:119100, n:'LROP TWR/APP'},
-  {f:121500, n:'GUARD'},
-];
+if(!Array.isArray(S.mem)) S.mem = [...CHANNELS.map(c=>({f:c.f,n:c.name})), {f:121500,n:'GUARD'}];
 
 /* ---------------- 7-segment ---------------- */
 const H=(x1,x2,y)=>`${x1},${y} ${x1+5},${y-5} ${x2-5},${y-5} ${x2},${y} ${x2-5},${y+5} ${x1+5},${y+5}`;
@@ -245,7 +265,7 @@ function digit(ch, h, dp){
   if(dp) s += `<circle class="seg${dp===2?' on':''}" cx="66" cy="94" r="5"/>`;
   return s + '</svg>';
 }
-function renderDigits(str, h){ // str may contain '.' after a char -> decimal point
+function renderDigits(str, h){
   let out='';
   for(let i=0;i<str.length;i++){
     if(str[i]==='.') continue;
@@ -279,24 +299,45 @@ function initNoise(){
     src.connect(bp).connect(noiseGain).connect(ctx.destination); src.start();
   }catch(e){ ctx=null; }
 }
-audio.addEventListener('playing',()=>{S.streamState='LIVE';update();});
-audio.addEventListener('waiting',()=>{S.streamState='BUFFER';update();});
-audio.addEventListener('error',()=>{ if(S.power){S.streamState='NO LINK';update();} });
+let streamToken=0;
+const onStream = (state) => () => { if(S.ch && audio.dataset.token==streamToken){ S.streamState=state; update(); } };
+audio.addEventListener('playing', onStream('LIVE'));
+audio.addEventListener('waiting', onStream('BUFFER'));
+audio.addEventListener('error',   onStream('NO LINK'));
 
-function startStream(){
+let connectT=null;
+function connect(ch){
+  streamToken++;
+  audio.dataset.token = streamToken;
   S.streamState='CONNECT';
-  audio.src = STREAM_URL + '?t=' + Date.now();
+  audio.src = STREAM_BASE + ch.mount + '?t=' + Date.now();
   audio.volume = 0;
-  audio.play().catch(()=>{S.streamState='NO LINK';update();});
+  const tok = streamToken;
+  audio.play().catch(()=>{ if(tok===streamToken){ S.streamState='NO LINK'; update(); } });
 }
-function stopStream(){
-  audio.pause(); audio.removeAttribute('src'); audio.load(); S.streamState='OFF';
+function disconnect(){
+  clearTimeout(connectT);
+  streamToken++;
+  audio.dataset.token = -1;
+  audio.pause(); audio.removeAttribute('src'); audio.load();
+  S.streamState='OFF';
+}
+const filterW = () => S.fil===1 ? 9 : S.fil===3 ? 4 : 6;     // kHz: cât de departe „prinzi” semnalul
+const nearest = (f=S.freq) => CHANNELS.reduce((b,c)=>Math.abs(c.f-f)<Math.abs(b.f-f)?c:b);
+/* alege / schimbă stream-ul în funcție de frecvența acordată (cu mică întârziere când rotești dialul) */
+function retune(){
+  if(!S.power){ if(S.ch){ S.ch=null; disconnect(); } return; }
+  const c = nearest();
+  const want = Math.abs(c.f - S.freq) <= filterW() ? c : null;
+  if(want === S.ch) return;
+  disconnect(); S.ch = want;
+  if(want){ S.streamState='CONNECT'; connectT = setTimeout(()=>connect(want), 350); }
 }
 
-/* signal model: 0..1 strength of the live signal at current tuning */
+/* signal model: 0..1 strength of the tuned live signal */
 function signal(){
-  const df = Math.abs(S.freq - LIVE_KHZ);
-  const w = S.fil===1 ? 9 : 6;           // filtru lat captează mai departe
+  if(!S.ch) return 0;
+  const df = Math.abs(S.freq - S.ch.f), w = filterW();
   if(df<=2) return 1;
   if(df<=w) return 1 - (df-2)/(w-2)*.75;
   return 0;
@@ -304,16 +345,16 @@ function signal(){
 function levels(){
   const sig = signal();
   const live = S.streamState==='LIVE';
-  let sLvl = .04 + (S.pamp?.05:0);                 // zgomot de fond
+  let sLvl = .04 + (S.pamp?.05:0);
   if(sig>0 && live) sLvl = Math.max(sLvl, .45 + .4*sig + (S.pamp?.08:0) - (S.att?.18:0));
   const open = S.sql < .03 || sLvl > S.sql*.9;
-  let n = 1 - sig*.95;
+  let n = 1 - (live ? sig*.95 : 0);
   if(S.mode!=='AM') n = Math.max(n,.7);
   if(S.pamp) n*=1.4; if(S.att) n*=.5; if(S.nb) n*=.8; if(S.nr) n*=.55; if(S.anf) n*=.9;
   const af = S.af*S.af;
   const streamVol = (S.power && open && live && sig>0) ? af*sig*(S.mode==='AM'?1:S.mode==='USB'?.35:0) : 0;
   const noiseVol = (S.power && open) ? af*n*.22 : 0;
-  return {sig, sLvl, open, streamVol, noiseVol};
+  return {sig, sLvl, open, live, streamVol, noiseVol};
 }
 function applyAudio(){
   const L = levels();
@@ -323,30 +364,32 @@ function applyAudio(){
 }
 
 /* ---------------- render ---------------- */
-function fmtFreq(k){ // kHz -> "119.100" + "00"
+function fmtFreq(k){
   const mhz = Math.floor(k/1000), khz = k%1000;
   return [String(mhz).padStart(3,' ')+'.'+String(khz).padStart(3,'0'), '00'];
 }
-function pad2(n){return String(n).padStart(2,'0')}
+const pad2 = n => String(n).padStart(2,'0');
 function update(){
+  retune();
   const L = applyAudio();
   lcd.classList.toggle('on', S.power);
   lcd.style.filter = `brightness(${.55+.45*S.dim})`;
   $('led').classList.toggle('on', S.power);
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
   ind('i-vfo',S.vfo); ind('i-mem',!S.vfo); ind('i-am',S.mode==='AM'); ind('i-fm',S.mode==='FM'); ind('i-usb',S.mode==='USB');
-  ind('i-scan',S.scan); ind('i-live',S.streamState==='LIVE'); ind('i-rx',L.open && L.sig>0 && S.streamState==='LIVE');
+  ind('i-scan',S.scan); ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
   ind('i-lock',S.lock); ind('i-pamp',S.pamp); ind('i-att',S.att); ind('i-nb',S.nb); ind('i-nr',S.nr); ind('i-anf',S.anf);
   ind('i-agc',S.agc!=='OFF'); $('i-agc').textContent = S.agc==='OFF'?'AGC':'AGC-'+S.agc;
-  ind('i-fil',true); $('i-fil').textContent='FIL'+S.fil;
+  $('i-fil').textContent='FIL'+S.fil; ind('i-fil',true);
   $('i-ts').textContent='TS '+S.step+'k';
+  const hs = SPANS[S.span]/2;
+  $('i-spanv').textContent = '±' + (hs>=1000 ? (hs/1000)+'M' : hs+'k');
 
-  // frequency / entry
   const fe = $('freq');
   if(S.err){ fe.innerHTML = renderDigits('  Err  ',62); }
   else if(S.entry!==null){
-    let e = S.entry;
-    let shown = e.includes('.') ? e : (e.length>3 ? e.slice(0,3)+'.'+e.slice(3) : e);
+    const e = S.entry;
+    const shown = e.includes('.') ? e : (e.length>3 ? e.slice(0,3)+'.'+e.slice(3) : e);
     let [a,b=''] = shown.split('.');
     a = a.padStart(3,' ').slice(-3); b=(b+'___').slice(0,3);
     fe.innerHTML = `<div class="blink" style="display:flex;align-items:flex-end">${renderDigits(a+'.'+b,62)}</div>`;
@@ -354,50 +397,105 @@ function update(){
     const [main, sub] = fmtFreq(S.freq);
     fe.innerHTML = renderDigits(main,62) + `<div style="margin-left:4px;display:flex">${renderDigits(sub,30)}</div>`;
   }
-  // memory channel
   $('mch').innerHTML = `<span class="tag">${S.vfo?'':'M-CH'}</span>` + (S.vfo ? '' : renderDigits(pad2(S.mch+1),30));
 
-  // text line
   let t;
   const memName = !S.vfo && S.mem[S.mch] ? S.mem[S.mch].n : null;
   const near = S.mem.find(m=>Math.abs(m.f-S.freq)<=2);
   if(S.err) t = 'OUT OF BAND 108-137';
   else if(S.entry!==null) t = 'ENTER MHz  ·  ENT';
   else if(S.textMode===1){ const d=new Date(); t = 'UTC '+pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes())+':'+pad2(d.getUTCSeconds())+'  LCL '+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
-  else if(S.textMode===2) t = 'STREAM: '+S.streamState;
-  else t = (memName || (near && near.n) || (S.vfo?'VFO':'M'+pad2(S.mch+1)+' EMPTY')) + (S.streamState!=='LIVE' && S.power ? '  ['+S.streamState+']' : '');
+  else if(S.textMode===2) t = S.ch ? (S.ch.mount.toUpperCase()+': '+S.streamState) : 'NO FEED HERE';
+  else {
+    t = memName || (S.ch && S.ch.name) || (near && near.n) || (S.vfo?'VFO':'M'+pad2(S.mch+1));
+    if(S.ch && S.streamState!=='LIVE') t += '  ['+S.streamState+']';
+  }
   $('text').textContent = t;
   S.lastL = L;
 }
 
-/* S-meter animation */
+/* ---------------- bandscope ---------------- */
+const scope = $('scope'), sctx = scope.getContext('2d');
+function sizeScope(){
+  const dpr = Math.min(3, (window.devicePixelRatio||1) * (stage._scale||1));
+  scope.width = Math.round(338*dpr); scope.height = Math.round(46*dpr);
+  sctx.setTransform(dpr,0,0,dpr,0,0);
+}
+const floor = new Float32Array(170).map(()=>Math.random());
+function drawScope(){
+  const W=338, Hh=46, cols=169, colW=W/cols;
+  sctx.clearRect(0,0,W,Hh);
+  if(!S.power) return;
+  const ink = getComputedStyle(document.documentElement).getPropertyValue('--seg-on').trim() || '#1c1006';
+  const span = SPANS[S.span], lo = S.freq - span/2;
+  const bw = Math.max(1.5, span/cols*1.2);
+  const noise = .05 + (S.pamp?.04:0) - (S.att?.02:0);
+  for(let i=0;i<cols;i++){
+    floor[i] = floor[i]*.6 + Math.random()*.4;
+    const f = lo + (i+.5)*span/cols;
+    let a = noise*(.4+floor[i]);
+    for(const c of CHANNELS){
+      const d = Math.abs(f-c.f);
+      if(d < bw*4){
+        const tuned = S.ch===c && S.streamState==='LIVE';
+        const strength = tuned ? Math.max(.25,S.level) : .45+.12*Math.sin(Date.now()/700+c.f);
+        a = Math.max(a, strength*Math.exp(-(d*d)/(2*bw*bw*1.2)) * (S.att?.75:1));
+      }
+    }
+    const h = Math.min(1,a)*(Hh-6);
+    // ghost column
+    sctx.fillStyle = 'rgba(60,25,0,.07)'; sctx.fillRect(i*colW, 3, colW-.6, Hh-6);
+    sctx.fillStyle = ink; sctx.fillRect(i*colW, Hh-3-h, colW-.6, h);
+  }
+  // centre marker + filter passband
+  const pw = filterW()*2/span*W;
+  sctx.fillStyle = 'rgba(28,16,6,.18)'; sctx.fillRect(W/2-pw/2, 0, pw, Hh);
+  sctx.fillStyle = ink;
+  for(let y=0;y<Hh;y+=4) sctx.fillRect(W/2-.5, y, 1, 2);
+  sctx.beginPath(); sctx.moveTo(W/2-4,0); sctx.lineTo(W/2+4,0); sctx.lineTo(W/2,5); sctx.fill();
+}
+scope.addEventListener('click', e=>{
+  if(!S.power || S.lock) return;
+  const r = scope.getBoundingClientRect();
+  const span = SPANS[S.span];
+  let f = S.freq + ((e.clientX - r.left)/r.width - .5)*span;
+  const c = nearest(f);
+  if(Math.abs(c.f - f) < span/40) f = c.f;           // snap pe semnalul vizibil
+  else f = Math.round(f/S.step)*S.step;
+  if(S.scan) stopScan();
+  S.vfo = true; S.freq = clampF(f); save(); update();
+});
+scope.addEventListener('wheel', e=>{ e.preventDefault(); S.span = Math.max(0,Math.min(SPANS.length-1, S.span + (e.deltaY>0?1:-1))); update(); },{passive:false});
+$('i-span').style.cursor='pointer';
+
+/* ---------------- animation ---------------- */
 let last=0;
 function tick(ts){
   requestAnimationFrame(tick);
   if(ts-last<60) return; last=ts;
-  if(!S.power){ S.level=0; barEls.forEach(b=>b.classList.remove('on')); return; }
+  if(!S.power){ S.level=0; barEls.forEach(b=>b.classList.remove('on')); drawScope(); return; }
   const L = S.lastL || levels();
   let target = L.sLvl;
-  if(L.sig>0 && S.streamState==='LIVE') target += (Math.random()-.5)*.14;
+  if(L.sig>0 && L.live) target += (Math.random()-.5)*.14;
   else target = Math.random()*target*1.3;
   const k = S.agc==='F'?.55:S.agc==='S'?.15:1;
   S.level += (target-S.level)*k;
   const lit = Math.round(Math.max(0,Math.min(1,S.level))*NBARS);
   barEls.forEach((b,i)=>b.classList.toggle('on',i<lit));
-  if(S.textMode===1 && !S.entry) $('text').textContent = $('text').textContent; // clock refresh below
+  drawScope();
 }
 requestAnimationFrame(tick);
 setInterval(()=>{ if(S.power && S.textMode===1) update(); },1000);
 
 /* ---------------- actions ---------------- */
-function save(){ store.set('freq',S.freq); store.set('af',S.af); store.set('sql',S.sql); store.set('dim',S.dim); store.set('mem',S.mem); }
-function clampF(f){ if(f<BAND[0]) f=BAND[1]-((BAND[0]-f)%1000); if(f>BAND[1]) f=BAND[0]; return f; }
+function save(){ store.set('freq',S.freq); store.set('af',S.af); store.set('sql',S.sql); store.set('dim',S.dim); store.set('mem2',S.mem); }
+function clampF(f){ if(f<BAND[0]) return BAND[1]; if(f>BAND[1]) return BAND[0]; return f; }
 function tune(steps){
   if(!S.power || S.lock) return;
   if(S.scan) stopScan();
   if(S.vfo){
     const st=S.step;
-    let f = Math.round(S.freq/st)*st;
+    const f = Math.round(S.freq/st)*st;
     if(f!==S.freq && Math.sign(steps)===Math.sign(f-S.freq)) steps -= Math.sign(steps);
     S.freq = clampF(f + steps*st);
   } else {
@@ -408,8 +506,8 @@ function tune(steps){
 }
 function power(){
   S.power=!S.power;
-  if(S.power){ initNoise(); if(ctx && ctx.state==='suspended') ctx.resume(); startStream(); }
-  else { stopStream(); stopScan(); S.entry=null; }
+  if(S.power){ initNoise(); if(ctx && ctx.state==='suspended') ctx.resume(); }
+  else { stopScan(); S.entry=null; }
   update();
 }
 function setMode(m){ if(!S.power) return; S.mode=m; update(); }
@@ -423,8 +521,8 @@ function keyIn(ch){
 }
 function enter(){
   if(!S.power || S.entry===null) return;
-  let e=S.entry; S.entry=null;
-  let mhz = e.includes('.') ? parseFloat(e) : (e.length>3 ? parseFloat(e.slice(0,3)+'.'+e.slice(3)) : parseFloat(e));
+  const e=S.entry; S.entry=null;
+  const mhz = e.includes('.') ? parseFloat(e) : (e.length>3 ? parseFloat(e.slice(0,3)+'.'+e.slice(3)) : parseFloat(e));
   const k = Math.round(mhz*1000);
   if(!isFinite(k) || k<BAND[0] || k>BAND[1]){ S.err=1; update(); setTimeout(()=>{S.err=0;update();},1200); return; }
   S.freq=k; S.vfo=true; save(); update();
@@ -448,17 +546,19 @@ function scan(){
   if(!S.power) return;
   if(S.scan){ stopScan(); return; }
   S.entry=null;
-  const vfoStep = () => {
+  if(S.vfo){
+    // caută până la următorul canal cu feed, apoi se oprește
     S.freq = clampF(S.freq + 25);
-    if(signal()===1 && S.streamState==='LIVE'){ S.freq=LIVE_KHZ; stopScan(); }
-    update();
-  };
-  const memStep = () => {
-    S.mch=(S.mch+1)%S.mem.length; S.freq=S.mem[S.mch].f;
-    if(signal()===1 && S.streamState==='LIVE') stopScan();
-    update();
-  };
-  S.scan = S.vfo ? setInterval(vfoStep,45) : setInterval(memStep,1200);
+    S.scan = setInterval(()=>{
+      S.freq = clampF(S.freq + 25);
+      const c = nearest();
+      if(Math.abs(c.f - S.freq) < 25){ S.freq = c.f; stopScan(); }
+      update();
+    },45);
+  } else {
+    // memorii: ascultă fiecare canal câteva secunde
+    S.scan = setInterval(()=>{ S.mch=(S.mch+1)%S.mem.length; S.freq=S.mem[S.mch].f; update(); },6000);
+  }
   update();
 }
 function stopScan(){ if(S.scan){ clearInterval(S.scan); S.scan=null; save(); update(); } }
@@ -468,8 +568,8 @@ function mkBtn(parent, {x,y,w,h,label,cls='',fn,title}){
   const b=document.createElement('button');
   b.className='btn '+cls; b.style.left=x+'px'; b.style.top=y+'px';
   if(w) b.style.width=w+'px'; if(h) b.style.height=h+'px';
-  b.innerHTML=label; b.addEventListener('click',fn); if(title) b.title=title;
-  b.setAttribute('aria-label', title || b.textContent);
+  b.innerHTML=label; b.addEventListener('click',fn);
+  b.setAttribute('aria-label', title || b.textContent); if(title) b.title=title;
   parent.appendChild(b); return b;
 }
 const modes=$('modes');
@@ -478,38 +578,44 @@ const modeDefs=[
   ['TS',()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }],
   ['FIL',()=>{ S.fil = S.fil===2?1:S.fil===1?3:2; update(); }],
   ['AGC',()=>{ S.agc = S.agc==='F'?'S':S.agc==='S'?'OFF':'F'; update(); }],
+  ['SPAN',()=>{ S.span=(S.span+1)%SPANS.length; update(); }],
+  ['SEL',()=>{ S.textMode=(S.textMode+1)%3; update(); }],
 ];
 modeDefs.forEach(([n,fn],i)=>{
-  const x=620+(i%3)*38, y=i<3?80:150;
+  const col = i<6 ? i%3 : (i-6), x=620+col*38;
+  const y = i<3 ? 80 : i<6 ? 150 : 226;
   const l=document.createElement('div'); l.className='mode-lbl'; l.textContent=n; l.style.left=x+'px'; l.style.top=(y-16)+'px'; modes.appendChild(l);
   mkBtn(modes,{x,y,label:'',cls:'mode-btn',fn,title:n});
 });
 
 const bottom=$('bottom');
-const toggles=[['P.AMP','pamp'],['ATT','att'],['NR','nr'],['ANF','anf'],['NB','nb']];
-toggles.forEach(([n,k],i)=>{
+[['P.AMP','pamp'],['ATT','att'],['NR','nr'],['ANF','anf'],['NB','nb']].forEach(([n,k],i)=>{
   const b=mkBtn(bottom,{x:244+i*60,y:398,label:n,cls:'small',fn:()=>{ if(!S.power) return; S[k]=!S[k]; b.classList.toggle('on',S[k]); update(); }});
 });
 
 const keys=$('keys');
-const keyDefs=['1','2','3','4','5','6','7','8','9','.','0','ENT'];
-keyDefs.forEach((k,i)=>{
+['1','2','3','4','5','6','7','8','9','.','0','ENT'].forEach((k,i)=>{
   const x=746+(i%3)*80, y=28+Math.floor(i/3)*44;
   mkBtn(keys,{x,y,label: k==='ENT'?'<span style="font-size:15px">ENT</span>':`<b>${k}</b>`,cls:'key',fn:()=> k==='ENT'?enter():keyIn(k),title:k});
 });
-const fnDefs=[
+[
   ['V/M',746,214,70,vm],['MW',826,214,70,mw],['CLR',906,214,70,clr],
-  ['SEL',746,258,110,()=>{ S.textMode=(S.textMode+1)%3; update(); }],['SCAN',866,258,110,scan],
+  ['M-CH ▲',746,258,110,()=>{ if(!S.power) return; if(S.vfo) vm(); else tune(1); }],['SCAN',866,258,110,scan],
   ['▼ DN',746,302,110,()=>tune(-1)],['UP ▲',866,302,110,()=>tune(1)],
-];
-fnDefs.forEach(([n,x,y,w,fn])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:n}));
+].forEach(([n,x,y,w,fn])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:n}));
+
+/* channel quick-select list under the arrows */
+CHANNELS.forEach((c,i)=>{
+  mkBtn(keys,{x:746+(i%3)*80,y:352+Math.floor(i/3)*30,w:70,h:24,label:`<span style="font-size:11px">${c.mount.toUpperCase()}</span>`,
+    fn:()=>{ if(!S.power||S.lock) return; if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }, title:c.name});
+});
 
 $('power').addEventListener('click',power);
 $('clock').addEventListener('click',()=>{ S.textMode = S.textMode===1?0:1; update(); });
 $('lock').addEventListener('click',e=>{ S.lock=!S.lock; e.currentTarget.classList.toggle('on',S.lock); update(); });
 
 /* knobs */
-function makeKnob({cx,cy,r,ri,get,set,getI,setI}){
+function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles}){
   const host=$('knobs');
   const ticks=document.createElement('div'); ticks.className='ticks';
   for(let i=0;i<11;i++){
@@ -517,24 +623,30 @@ function makeKnob({cx,cy,r,ri,get,set,getI,setI}){
     const d=document.createElement('i'); d.style.left=(cx+Math.sin(a)*R)+'px'; d.style.top=(cy-Math.cos(a)*R)+'px'; ticks.appendChild(d);
   }
   host.appendChild(ticks);
-  const mk=(rad,cls,g,s)=>{
-    const k=document.createElement('div'); k.className='knob '+cls;
+  const mk=(rad,cls,g,s,title)=>{
+    const k=document.createElement('div'); k.className='knob '+cls; k.title=title; k.setAttribute('aria-label',title);
     Object.assign(k.style,{left:(cx-rad)+'px',top:(cy-rad)+'px',width:rad*2+'px',height:rad*2+'px'});
     k.innerHTML='<div class="mark"></div>'; k.tabIndex=0;
     const draw=()=>k.style.transform=`rotate(${-135+g()*270}deg)`;
+    const setV=v=>{ s(Math.max(0,Math.min(1,v))); draw(); update(); save(); };
     let y0=null,v0=0;
     k.addEventListener('pointerdown',e=>{e.stopPropagation();k.setPointerCapture(e.pointerId);y0=e.clientY;v0=g();});
-    k.addEventListener('pointermove',e=>{ if(y0===null) return; s(Math.max(0,Math.min(1,v0+(y0-e.clientY)/150))); draw(); update(); save(); });
+    k.addEventListener('pointermove',e=>{ if(y0!==null) setV(v0+(y0-e.clientY)/150); });
     k.addEventListener('pointerup',()=>y0=null);
-    k.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation(); s(Math.max(0,Math.min(1,g()-Math.sign(e.deltaY)*.04))); draw(); update(); save();},{passive:false});
-    k.addEventListener('keydown',e=>{ if(e.key==='ArrowUp'||e.key==='ArrowRight'){s(Math.min(1,g()+.05));} else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){s(Math.max(0,g()-.05));} else return; e.preventDefault(); e.stopPropagation(); draw(); update(); save(); });
+    k.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation(); setV(g()-Math.sign(e.deltaY)*.04);},{passive:false});
+    k.addEventListener('keydown',e=>{
+      if(e.key==='ArrowUp'||e.key==='ArrowRight') setV(g()+.05);
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft') setV(g()-.05);
+      else return;
+      e.preventDefault(); e.stopPropagation();
+    });
     host.appendChild(k); draw(); return k;
   };
-  const o = mk(r,'outer',get,set); o.title = 'SQL';
-  if(getI){ const i = mk(ri,'inner',getI,setI); i.title='AF (volum)'; }
+  mk(r,'outer',get,set,titles[0]);
+  if(getI) mk(ri,'inner',getI,setI,titles[1]);
 }
-makeKnob({cx:292,cy:330,r:42,ri:27,get:()=>S.sql,set:v=>S.sql=v,getI:()=>S.af,setI:v=>S.af=v});
-makeKnob({cx:392,cy:330,r:30,ri:24,get:()=>S.dim,set:v=>S.dim=v,getI:()=>S.dim,setI:v=>S.dim=v});
+makeKnob({cx:292,cy:330,r:42,ri:27,get:()=>S.sql,set:v=>S.sql=v,getI:()=>S.af,setI:v=>S.af=v,titles:['SQL','AF (volum)']});
+makeKnob({cx:392,cy:330,r:30,ri:24,get:()=>S.dim,set:v=>S.dim=v,getI:()=>S.dim,setI:v=>S.dim=v,titles:['DIMMER','DIMMER']});
 
 /* main dial */
 const dial=$('dial'), face=$('dialFace');
@@ -545,7 +657,7 @@ const ang=e=>{ const r=dial.getBoundingClientRect(); return Math.atan2(e.clientY
 dial.addEventListener('pointerdown',e=>{ dial.setPointerCapture(e.pointerId); lastA=ang(e); });
 dial.addEventListener('pointermove',e=>{
   if(lastA===null) return;
-  let a=ang(e), d=a-lastA; if(d>180)d-=360; if(d<-180)d+=360; lastA=a;
+  const a=ang(e); let d=a-lastA; if(d>180)d-=360; if(d<-180)d+=360; lastA=a;
   if(S.lock || !S.power) return;
   spin(d); acc+=d;
   const per = S.vfo?10:30;
@@ -566,11 +678,13 @@ window.addEventListener('keydown',e=>{
 });
 
 /* ---------------- fit to screen ---------------- */
-const W=1000,Hh=505;
+const W=1000, HH=552;
 function fit(){
-  const s=Math.min(1.25,(window.innerWidth-32)/W,(window.innerHeight-32)/Hh);
+  const s=Math.min(1.25,(window.innerWidth-32)/W,(window.innerHeight-32)/HH);
+  stage._scale = s;
   stage.style.transform=`scale(${s})`;
-  $('fit').style.width=W*s+'px'; $('fit').style.height=Hh*s+'px';
+  $('fit').style.width=W*s+'px'; $('fit').style.height=HH*s+'px';
+  sizeScope();
 }
 window.addEventListener('resize',fit); fit();
 
