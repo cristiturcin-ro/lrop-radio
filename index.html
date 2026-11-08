@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LROP Tower/Approach Radio</title>
+<script>
+/* telefoane în portret → versiunea portabilă (index.html?desktop forțează desktop) */
+try{
+  if(!/[?&]desktop/.test(location.search) && matchMedia('(max-width: 700px) and (orientation: portrait) and (pointer: coarse)').matches)
+    location.replace('mobile.html');
+}catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
@@ -199,32 +206,19 @@ button{font-family:inherit}
   </div>
   <div id="keys"></div>
 
-  <div class="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · click pe spectru = acord · tastatură: cifre + ENT · ↑ ↓ acord · Esc = CLR</div>
+  <div class="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · click pe spectru = acord · tastatură: cifre + ENT · ↑ ↓ acord · Esc = CLR · <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
 
+<script src="channels.js"></script>
 <script>
 (() => {
-/* ================= CONFIGURARE =================
-   Schimbă aici numele de pe carcasă și canalele.
-   Stream-urile sunt feed-uri reale LiveATC (verificate);
-   frecvențele sunt cele pe care le „pui” pe dial – verifică-le / ajustează-le după AIP. */
-const CONFIG = {
-  brand:    'LROP',
-  brandSub: 'OTP',
-  model:    'AR-119',
-  subtitle: 'AIRBAND COMMUNICATIONS RECEIVER',
-};
-const CHANNELS = [
-  { f:119100, name:'LROP APP/TWR/ACC', mount:'lrop'     },
-  { f:120900, name:'LROP TOWER',       mount:'lrop_twr' },
-  { f:121850, name:'LROP GROUND',      mount:'lrop2'    },
-  { f:118300, name:'LRCL CLUJ',        mount:'lrcl'     },
-  { f:118400, name:'LRTR TIMISOARA',   mount:'lrtr'     },
-];
-const STREAM_BASE = 'https://d.liveatc.net/';
-const BAND = [108000, 136975];
+/* Configurarea (nume, canale, frecvențe) e în channels.js – comună cu versiunea de mobil. */
+const CONFIG = window.RADIO_CONFIG;
+const CHANNELS = CONFIG.channels;
+const STREAM_BASE = CONFIG.streamBase;
+const BAND = CONFIG.band;
 const SPANS = [200, 500, 1000, 2500, 5000];   // kHz, lățimea totală a spectrului
 
 const $ = id => document.getElementById(id);
