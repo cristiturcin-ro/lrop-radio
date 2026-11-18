@@ -119,6 +119,10 @@ button{font-family:inherit}
   border-top:1px solid rgba(28,16,6,.35);border-bottom:1px solid rgba(28,16,6,.35)}
 .scope-lbl{position:absolute;top:157px;font:700 9px/1 "Barlow Condensed";opacity:.75!important}
 .textline{position:absolute;left:14px;bottom:5px;font:22px/1 "VT323",monospace;letter-spacing:1px;white-space:pre}
+.sdr-open{position:absolute;right:10px;bottom:5px;display:none;border:none;border-radius:2px;cursor:pointer;padding:3px 6px;
+  background:var(--seg-on);color:var(--lcd-on-1);font:700 12px/1 "Barlow Condensed";letter-spacing:1px}
+.sdr-open.show{display:block}
+.sdr-open:hover{filter:brightness(1.6)}
 
 /* ---------- knobs ---------- */
 .ticks i{position:absolute;width:4px;height:4px;border-radius:50%;background:#cfcfcf;margin:-2px 0 0 -2px}
@@ -184,6 +188,7 @@ button{font-family:inherit}
     <canvas class="scope" id="scope" title="Bandscope – click pentru acord"></canvas>
     <div class="textline" id="text"></div>
     <div class="glass"></div>
+    <button class="sdr-open" id="sdrOpen" title="Deschide receptorul web într-un tab nou">▶ WEB SDR</button>
   </div>
 
   <div id="modes"></div>
@@ -206,20 +211,24 @@ button{font-family:inherit}
   </div>
   <div id="keys"></div>
 
-  <div class="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · click pe spectru = acord · tastatură: cifre + ENT · ↑ ↓ acord · Esc = CLR · <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
+  <div class="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · click pe spectru = acord · tastatură: cifre + ENT (HF: 5.505 ENT) · ↑ ↓ acord · Esc = CLR · <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
 
 <script src="channels.js"></script>
+<script src="sdr.js"></script>
 <script>
 (() => {
 /* Configurarea (nume, canale, frecvențe) e în channels.js – comună cu versiunea de mobil. */
 const CONFIG = window.RADIO_CONFIG;
 const CHANNELS = CONFIG.channels;
 const STREAM_BASE = CONFIG.streamBase;
-const BAND = CONFIG.band;
+const BANDS = CONFIG.bands;
+const bandIdx = f => BANDS.findIndex(b => f>=b.lo && f<=b.hi);
 const SPANS = [200, 500, 1000, 2500, 5000];   // kHz, lățimea totală a spectrului
+const sdr = new SDR.KiwiPlayer();
+const isSdr = c => !!(c && c.rx);
 
 const $ = id => document.getElementById(id);
 const stage = $('stage'), lcd = $('lcd'), audio = $('stream');
@@ -243,6 +252,10 @@ const S = {
   streamState:'OFF', level:0, ch:null
 };
 if(!Array.isArray(S.mem)) S.mem = [...CHANNELS.map(c=>({f:c.f,n:c.name})), {f:121500,n:'GUARD'}];
+// canale noi din channels.js → adăugate și în memoriile deja salvate
+CHANNELS.forEach(c=>{ if(!S.mem.some(m=>m.f===c.f) && S.mem.length<99) S.mem.push({f:c.f,n:c.name}); });
+if(bandIdx(S.freq)<0) S.freq = CHANNELS[0].f;
+S.band = bandIdx(S.freq); S.mode = BANDS[S.band].mode; S.step = BANDS[S.band].step;
 
 /* ---------------- 7-segment ---------------- */
 const H=(x1,x2,y)=>`${x1},${y} ${x1+5},${y-5} ${x2-5},${y-5} ${x2},${y} ${x2-5},${y+5} ${x1+5},${y+5}`;
@@ -301,6 +314,11 @@ audio.addEventListener('error',   onStream('NO LINK'));
 
 let connectT=null;
 function connect(ch){
+  if(isSdr(ch)){
+    sdr.attach(ctx);
+    sdr.start(ch, st=>{ if(S.ch===ch){ S.streamState=st; update(); } });
+    return;
+  }
   streamToken++;
   audio.dataset.token = streamToken;
   S.streamState='CONNECT';
@@ -314,8 +332,16 @@ function disconnect(){
   streamToken++;
   audio.dataset.token = -1;
   audio.pause(); audio.removeAttribute('src'); audio.load();
+  sdr.stop();
   S.streamState='OFF';
 }
+const chTag = c => isSdr(c) ? (sdr.rx ? 'KIWI '+sdr.rx.name : 'WEB SDR') : c.mount.toUpperCase();
+const sdrFallback = () => isSdr(S.ch) && ['WEB ONLY','NO RX','BUSY','DOWN','TIMEOUT','NO LINK','BLOCKED','NO AUDIO'].includes(S.streamState);
+$('sdrOpen').addEventListener('click', e=>{
+  e.stopPropagation();
+  const u = S.ch && SDR.openUrl(S.ch);
+  if(u) window.open(u, '_blank', 'noopener');
+});
 const filterW = () => S.fil===1 ? 9 : S.fil===3 ? 4 : 6;     // kHz: cât de departe „prinzi” semnalul
 const nearest = (f=S.freq) => CHANNELS.reduce((b,c)=>Math.abs(c.f-f)<Math.abs(b.f-f)?c:b);
 /* alege / schimbă stream-ul în funcție de frecvența acordată (cu mică întârziere când rotești dialul) */
@@ -339,20 +365,28 @@ function signal(){
 function levels(){
   const sig = signal();
   const live = S.streamState==='LIVE';
+  const want = (S.ch && S.ch.mode) || BANDS[Math.max(0,bandIdx(S.freq))].mode;   // modul corect pentru semnalul acordat
   let sLvl = .04 + (S.pamp?.05:0);
-  if(sig>0 && live) sLvl = Math.max(sLvl, .45 + .4*sig + (S.pamp?.08:0) - (S.att?.18:0));
+  if(sig>0 && live){
+    // receptor web: S-metrul arată nivelul real (dBm) raportat de KiwiSDR
+    const base = isSdr(S.ch) && sdr.dbm!=null ? SDR.meter(sdr.dbm, 12, 21.3, NBARS)*(.55+.45*sig) : .45 + .4*sig;
+    sLvl = Math.max(sLvl, base + (S.pamp?.08:0) - (S.att?.18:0));
+  }
   const open = S.sql < .03 || sLvl > S.sql*.9;
   let n = 1 - (live ? sig*.95 : 0);
-  if(S.mode!=='AM') n = Math.max(n,.7);
+  if(S.mode!==want) n = Math.max(n,.7);
   if(S.pamp) n*=1.4; if(S.att) n*=.5; if(S.nb) n*=.8; if(S.nr) n*=.55; if(S.anf) n*=.9;
   const af = S.af*S.af;
-  const streamVol = (S.power && open && live && sig>0) ? af*sig*(S.mode==='AM'?1:S.mode==='USB'?.35:0) : 0;
+  const mf = S.mode===want ? 1 : S.mode==='FM' ? 0 : .35;
+  const streamVol = (S.power && open && live && sig>0) ? af*sig*mf : 0;
   const noiseVol = (S.power && open) ? af*n*.22 : 0;
   return {sig, sLvl, open, live, streamVol, noiseVol};
 }
 function applyAudio(){
   const L = levels();
-  audio.volume = Math.min(1, Math.max(0, L.streamVol));
+  const v = Math.min(1, Math.max(0, L.streamVol));
+  audio.volume = isSdr(S.ch) ? 0 : v;
+  sdr.setVolume(isSdr(S.ch) ? v : 0);
   if(noiseGain) noiseGain.gain.setTargetAtTime(L.noiseVol, ctx.currentTime, .03);
   return L;
 }
@@ -364,6 +398,9 @@ function fmtFreq(k){
 }
 const pad2 = n => String(n).padStart(2,'0');
 function update(){
+  // la schimbarea benzii: mod + pas automat (HF = USB / 1 kHz, VHF = AM / 25 kHz)
+  const bi = bandIdx(S.freq);
+  if(bi>=0 && bi!==S.band){ S.band = bi; S.mode = BANDS[bi].mode; S.step = BANDS[bi].step; }
   retune();
   const L = applyAudio();
   lcd.classList.toggle('on', S.power);
@@ -396,15 +433,17 @@ function update(){
   let t;
   const memName = !S.vfo && S.mem[S.mch] ? S.mem[S.mch].n : null;
   const near = S.mem.find(m=>Math.abs(m.f-S.freq)<=2);
-  if(S.err) t = 'OUT OF BAND 108-137';
+  const fb = S.power && sdrFallback();
+  if(S.err) t = 'OUT OF BAND';
   else if(S.entry!==null) t = 'ENTER MHz  ·  ENT';
   else if(S.textMode===1){ const d=new Date(); t = 'UTC '+pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes())+':'+pad2(d.getUTCSeconds())+'  LCL '+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
-  else if(S.textMode===2) t = S.ch ? (S.ch.mount.toUpperCase()+': '+S.streamState) : 'NO FEED HERE';
+  else if(S.textMode===2) t = S.ch ? (chTag(S.ch)+': '+S.streamState) : 'NO FEED HERE';
   else {
     t = memName || (S.ch && S.ch.name) || (near && near.n) || (S.vfo?'VFO':'M'+pad2(S.mch+1));
-    if(S.ch && S.streamState!=='LIVE') t += '  ['+S.streamState+']';
+    if(S.ch && S.streamState!=='LIVE' && !fb) t += '  ['+S.streamState+']';
   }
   $('text').textContent = t;
+  $('sdrOpen').classList.toggle('show', fb && S.err===0 && S.entry===null);
   S.lastL = L;
 }
 
@@ -468,7 +507,11 @@ function tick(ts){
   requestAnimationFrame(tick);
   if(ts-last<60) return; last=ts;
   if(!S.power){ S.level=0; barEls.forEach(b=>b.classList.remove('on')); drawScope(); return; }
-  const L = S.lastL || levels();
+  let L = S.lastL || levels();
+  if(isSdr(S.ch) && S.streamState==='LIVE'){        // nivel real de la receptor → S-metru + squelch live
+    L = S.lastL = applyAudio();
+    $('i-rx').classList.toggle('on', L.open && L.sig>0 && L.live);
+  }
   let target = L.sLvl;
   if(L.sig>0 && L.live) target += (Math.random()-.5)*.14;
   else target = Math.random()*target*1.3;
@@ -483,7 +526,8 @@ setInterval(()=>{ if(S.power && S.textMode===1) update(); },1000);
 
 /* ---------------- actions ---------------- */
 function save(){ store.set('freq',S.freq); store.set('af',S.af); store.set('sql',S.sql); store.set('dim',S.dim); store.set('mem2',S.mem); }
-function clampF(f){ if(f<BAND[0]) return BAND[1]; if(f>BAND[1]) return BAND[0]; return f; }
+/* acordul relativ (dial, săgeți, scan) rămâne în banda curentă și face wrap la capete */
+function clampF(f){ const b = BANDS[Math.max(0,bandIdx(S.freq))]; if(f<b.lo) return b.hi; if(f>b.hi) return b.lo; return f; }
 function tune(steps){
   if(!S.power || S.lock) return;
   if(S.scan) stopScan();
@@ -517,8 +561,10 @@ function enter(){
   if(!S.power || S.entry===null) return;
   const e=S.entry; S.entry=null;
   const mhz = e.includes('.') ? parseFloat(e) : (e.length>3 ? parseFloat(e.slice(0,3)+'.'+e.slice(3)) : parseFloat(e));
-  const k = Math.round(mhz*1000);
-  if(!isFinite(k) || k<BAND[0] || k>BAND[1]){ S.err=1; update(); setTimeout(()=>{S.err=0;update();},1200); return; }
+  let k = Math.round(mhz*1000);
+  // doar cifre și nu e frecvență VHF validă → poate e kHz în HF (ex. 5505)
+  if(bandIdx(k)<0 && !e.includes('.') && bandIdx(+e)>=0) k = +e;
+  if(!isFinite(k) || bandIdx(k)<0){ S.err=1; update(); setTimeout(()=>{S.err=0;update();},1200); return; }
   S.freq=k; S.vfo=true; save(); update();
 }
 function clr(){ S.entry=null; S.err=0; if(S.scan) stopScan(); update(); }
@@ -598,10 +644,12 @@ const keys=$('keys');
   ['▼ DN',746,302,110,()=>tune(-1)],['UP ▲',866,302,110,()=>tune(1)],
 ].forEach(([n,x,y,w,fn])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:n}));
 
-/* channel quick-select list under the arrows */
+/* channel quick-select list under the arrows (rândurile se strâng dacă sunt multe canale) */
+const qsRows = Math.ceil(CHANNELS.length/3), qsGap = Math.min(30, Math.floor(124/qsRows));
 CHANNELS.forEach((c,i)=>{
-  mkBtn(keys,{x:746+(i%3)*80,y:352+Math.floor(i/3)*30,w:70,h:24,label:`<span style="font-size:11px">${c.mount.toUpperCase()}</span>`,
-    fn:()=>{ if(!S.power||S.lock) return; if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }, title:c.name});
+  const lbl = c.btn || c.mount.toUpperCase();
+  mkBtn(keys,{x:746+(i%3)*80,y:352+Math.floor(i/3)*qsGap,w:70,h:qsGap-5,label:`<span style="font-size:${lbl.length>11?10:11}px;white-space:nowrap">${lbl}</span>`,
+    fn:()=>{ if(!S.power||S.lock) return; if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }, title:c.name+(isSdr(c)?' · '+c.f+' kHz '+(c.mode||'USB'):'')});
 });
 
 $('power').addEventListener('click',power);
