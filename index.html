@@ -74,11 +74,9 @@ button{font-family:inherit}
 .small{height:21px;width:54px;font-size:11px;border-radius:4px}
 .mode-lbl{position:absolute;width:38px;text-align:center;font:600 11px/1 "Barlow Condensed";color:#eee;letter-spacing:.5px;cursor:help}
 .btn.tab{color:#bbb;background:linear-gradient(180deg,#2e3034,#1c1d20)}
-/* tab-ul selectat: tot butonul devine portocaliu (fără linie sub nume) */
-.btn.tab.on{color:#1c1006;background:linear-gradient(180deg,#ffb347,#ff8f1f);
-  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(120,50,0,.35) inset,0 0 10px rgba(255,140,30,.45),0 0 0 1px #0a0a0b}
-.btn.tab.on::after{display:none}
-.btn.chbtn.on{color:#ffb04a}
+/* tab-ul / canalul selectat: se aprind doar literele în portocaliu – fără fundal colorat, fără punct */
+.btn.tab.on,.btn.chbtn.on{color:#ffb04a;text-shadow:0 0 6px rgba(255,150,40,.55)}
+.btn.tab.on::after,.btn.chbtn.on::after{display:none}
 .grp-lbl{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:3px;color:#cfcfcf;cursor:help}
 .grp-lbl::before,.grp-lbl::after{content:"";flex:1;height:1px;background:#4a4c51}
 .btn.power.idle{animation:pwrGlow 1.8s ease-in-out infinite}
