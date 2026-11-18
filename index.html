@@ -314,6 +314,8 @@ audio.addEventListener('waiting', onStream('BUFFER'));
 audio.addEventListener('error',   onStream('NO LINK'));
 
 let connectT=null;
+// LiveATC: streamBase + mount; alte surse: url complet (stream direct MP3 / Icecast)
+const streamUrl = ch => ch.url ? ch.url : STREAM_BASE + ch.mount + '?t=' + Date.now();
 function connect(ch){
   if(isSdr(ch)){
     sdr.attach(ctx);
@@ -323,7 +325,7 @@ function connect(ch){
   streamToken++;
   audio.dataset.token = streamToken;
   S.streamState='CONNECT';
-  audio.src = STREAM_BASE + ch.mount + '?t=' + Date.now();
+  audio.src = streamUrl(ch);
   audio.volume = 0;
   const tok = streamToken;
   audio.play().catch(()=>{ if(tok===streamToken){ S.streamState='NO LINK'; update(); } });
@@ -336,7 +338,7 @@ function disconnect(){
   sdr.stop();
   S.streamState='OFF';
 }
-const chTag = c => isSdr(c) ? (sdr.rx ? 'KIWI '+sdr.rx.name : 'WEB SDR') : c.mount.toUpperCase();
+const chTag = c => isSdr(c) ? (sdr.rx ? 'KIWI '+sdr.rx.name : 'WEB SDR') : c.url ? (c.source||'STREAM').toUpperCase() : c.mount.toUpperCase();
 const sdrFallback = () => isSdr(S.ch) && ['WEB ONLY','NO RX','BUSY','DOWN','TIMEOUT','NO LINK','BLOCKED','NO AUDIO'].includes(S.streamState);
 $('sdrOpen').addEventListener('click', e=>{
   e.stopPropagation();
@@ -410,7 +412,7 @@ function update(){
   $('power').classList.toggle('idle', !S.power);      // pulsează până îl pornești
   renderGroups();
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
-  ind('i-vfo',S.vfo); ind('i-mem',!S.vfo);
+  ind('i-vfo',S.vfo); ind('i-mem',!S.vfo); $('i-am').textContent = S.mode;
   ind('i-scan',S.scan); ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
   ind('i-lock',S.lock);
   $('i-ts').textContent='STEP '+S.step+'k';
@@ -629,7 +631,7 @@ const TIP = {
   DOWN:  {t:'ÎN JOS', d:'Un pas de frecvență în jos (în modul MEM: canalul anterior).', k:'[↓]'},
   UP:    {t:'ÎN SUS', d:'Un pas de frecvență în sus (în modul MEM: canalul următor).', k:'[↑]'},
   SCAN:  {t:'SCANARE', d:'Caută singur următorul canal cu semnal și se oprește pe el. În modul MEM ascultă pe rând fiecare canal salvat. Apasă din nou pentru stop.'},
-  freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz (banda aviației civile, 108–137 MHz).'},
+  freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz: 108–137 = aviație (AM), 137–174 = urgențe, tren, maritim, meteo (FM).'},
   smeter:{t:'S-METRU', d:'Puterea semnalului recepționat.'},
   scope: {t:'SPECTRU', d:'Vârfurile sunt canale cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
   text:  {t:'NUME / STARE', d:'Numele canalului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
@@ -642,8 +644,8 @@ const TIP = {
     return {t:'DESCHIDE RECEPTORUL WEB', d:`Canalul nu se poate reda direct în radio (${why}). Se deschide receptorul într-un tab nou, deja acordat pe ${S.ch?fmtF(S.ch.f):''}.`};
   },
 };
-const chHelp = c => () => ({ t:c.name, d:c.info || '',
-  k: `${fmtF(c.f)} · ${c.mode||'AM'} · ${isSdr(c) ? 'receptor web (KiwiSDR / WebSDR)' : 'LiveATC'}` });
+const chHelp = c => () => ({ t:c.name, d:(c.info || '') + (c.nominal ? ' (Frecvența de pe dial e orientativă: feed-ul ascultă mai multe canale.)' : ''),
+  k: `${fmtF(c.f)} · ${c.mode || BANDS[Math.max(0,bandIdx(c.f))].mode} · ${isSdr(c) ? 'receptor web (KiwiSDR / WebSDR)' : c.url ? (c.source||'stream direct') : 'LiveATC'}` });
 
 /* ---------------- build controls ---------------- */
 function mkBtn(parent, {x,y,w,h,label,cls='',fn,title,help}){
@@ -670,27 +672,29 @@ const keys=$('keys');
 });
 [
   ['VFO/MEM',746,214,70,vm,TIP.VM,'V/M'],['SAVE',826,214,70,mw,TIP.SAVE],['CLR',906,214,70,clr,TIP.CLR],
-  ['▼ DOWN',746,258,110,()=>tune(-1),TIP.DOWN],['UP ▲',866,258,110,()=>tune(1),TIP.UP],
-  ['SCAN',746,302,230,scan,TIP.SCAN],
+  ['▼ DOWN',746,258,70,()=>tune(-1),TIP.DOWN],['SCAN',826,258,70,scan,TIP.SCAN],['UP ▲',906,258,70,()=>tune(1),TIP.UP],
 ].forEach(([n,x,y,w,fn,help,aria])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:aria||n,help}));
 
 /* canale rapide: tab-uri pe regiuni (ROMÂNIA / LUME / HF) + până la 6 canale pe tab */
 const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*', name:'CANALE', info:''}];
 const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
 S.grp = grpOf(nearest()); S.autoGrp = null;
-const tabW = (230 - (GROUPS.length-1)*10) / GROUPS.length;
-const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{x:746+i*(tabW+10),y:348,w:tabW,h:22,cls:'tab',
-  label:`<span style="font-size:11px;letter-spacing:1px">${g.name}</span>`, title:g.name,
+// tab-uri pe cel mult 3 coloane (2 rânduri dacă sunt multe domenii), apoi canalele
+const tabCols = Math.min(3, GROUPS.length), tabRows = GROUPS.length<2 ? 1 : Math.ceil(GROUPS.length/tabCols);
+const tabGap = 10, tabW = (230 - (tabCols-1)*tabGap) / tabCols, tabsTop = 306, chTop = tabsTop + tabRows*26 + 8;
+const tabFont = 'font-size:10px;letter-spacing:.4px';
+const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{x:746+(i%tabCols)*(tabW+tabGap),y:tabsTop+Math.floor(i/tabCols)*26,w:tabW,h:22,cls:'tab',
+  label:`<span style="${tabFont};white-space:nowrap">${g.name}</span>`, title:g.name,
   help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
 if(GROUPS.length<2){                     // o singură listă → doar un titlu, nu un buton
   const l=document.createElement('div'); l.className='lbl grp-lbl'; l.textContent=GROUPS[0].name;
-  Object.assign(l.style,{left:'746px',top:'350px',width:'230px'}); keys.appendChild(l);
+  Object.assign(l.style,{left:'746px',top:(tabsTop+4)+'px',width:'230px'}); keys.appendChild(l);
   HELP.attach(l, {t:GROUPS[0].name, d:GROUPS[0].info});
 }
 const chEls = CHANNELS.map(c=>{
   const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
   const lbl = c.btn || c.mount.toUpperCase();
-  return mkBtn(keys,{x:746+(i%3)*80,y:378+Math.floor(i/3)*33,w:70,h:28,cls:'chbtn',
+  return mkBtn(keys,{x:746+(i%3)*80,y:chTop+Math.floor(i/3)*33,w:70,h:28,cls:'chbtn',
     label:`<span style="font-size:${lbl.length>11?10:11.5}px;white-space:nowrap">${lbl}</span>`, title:c.name+' '+fmtF(c.f), help:chHelp(c),
     fn:()=>{ if(S.lock) return; if(!S.power) power(); if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }});
 });
