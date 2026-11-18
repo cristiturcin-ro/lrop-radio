@@ -175,6 +175,7 @@ body{
 <script src="channels.js"></script>
 <script src="sdr.js"></script>
 <script src="help.js"></script>
+<script src="keepalive.js"></script>
 <script>
 (() => {
 const CFG = window.RADIO_CONFIG;
@@ -249,6 +250,11 @@ const onStream = st => () => { if(S.feed && +audio.dataset.token===token){ S.str
 audio.addEventListener('playing', onStream('LIVE'));
 audio.addEventListener('waiting', onStream('BUFFER'));
 audio.addEventListener('error',   onStream('NO LINK'));
+// non-stop: repornește singur stream-ul dacă pică / se blochează (vezi keepalive.js)
+const keeper = KEEPALIVE.watch(audio, { active: () => S.power && !!S.feed && !isSdr(S.feed), reconnect: () => { if(S.feed) connect(S.feed); } });
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState==='visible' && S.power && ctx && ctx.state==='suspended') ctx.resume();
+});
 function connect(c){
   if(isSdr(c)){
     sdr.attach(ctx);
@@ -281,7 +287,7 @@ function retune(){
   const c = nearestFeed();
   const want = Math.abs(c.f-S.freq)<=6 ? c : null;
   if(want===S.feed) return;
-  disconnect(); S.feed=want;
+  disconnect(); S.feed=want; keeper.reset();
   if(want){ S.streamState='CONNECT'; connectT=setTimeout(()=>connect(want),300); }
 }
 function signal(){
@@ -320,6 +326,7 @@ function setMediaSession(c){
 
 /* ---------- render ---------- */
 function update(){
+  KEEPALIVE.wake(S.power);                            // cât timp e pornit: ecranul nu se stinge
   const bi=bandIdx(S.freq);
   if(bi>=0 && bi!==S.band){ S.band=bi; S.step=BANDS[bi].step; }   // HF = 1 kHz, VHF = 25 kHz
   retune();
@@ -419,7 +426,7 @@ function mode(){
 /* ---------- buttons ---------- */
 /* texte de ajutor: ține apăsat pe un buton (sau mouse-ul deasupra, pe desktop) */
 const HLP={
-  PWR:{t:'PORNIRE / OPRIRE', d:'Pornește radioul. Apoi alege canalul cu ◀ ▶.'},
+  PWR:{t:'PORNIRE / OPRIRE', d:'Pornește radioul. Apoi alege canalul cu ◀ ▶. Cât timp e pornit, ecranul nu se stinge și stream-ul se reconectează singur dacă pică.'},
   MON:{t:'MONITOR', d:'Deschide squelch-ul: auzi și fâșâitul de fond. Util ca să verifici că merge sunetul.'},
   LIGHT:{t:'LUMINĂ', d:'Trei trepte de luminozitate pentru afișaj.'},
   ARROW:{t:'CANAL ◀ ▶', d:'Canalul anterior / următor (în modul VFO: un pas de frecvență). Ține apăsat ca să derulezi repede. Poți și glisa pe afișaj.'},
