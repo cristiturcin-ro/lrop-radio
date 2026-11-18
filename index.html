@@ -211,7 +211,7 @@ button{font-family:inherit}
   </div>
   <div id="keys"></div>
 
-  <div class="hint"><b>①</b> alege un canal din dreapta-jos &nbsp;<b>②</b> AF = volum &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
+  <div class="hint"><b>①</b> alege un domeniu și un canal din dreapta &nbsp;<b>②</b> AF = volum &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
@@ -613,7 +613,7 @@ function stopScan(){ if(S.scan){ clearInterval(S.scan); S.scan=null; save(); upd
 /* ---------------- texte de ajutor (popup la hover / apăsare lungă) ---------------- */
 const fmtF = f => f>=100000 ? (f/1000).toFixed(3)+' MHz' : f+' kHz';
 const TIP = {
-  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Sfat: un clic pe un canal din dreapta-jos îl pornește automat.'},
+  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Sfat: un clic pe un canal din dreapta îl pornește automat.'},
   af:    {t:'VOLUM (AF)', d:'Butonul mic din mijloc. Trage în sus/jos sau folosește rotița mouse-ului.'},
   sql:   {t:'SQUELCH (SQL)', d:'Inelul mare din jur. Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
   dim:   {t:'LUMINOZITATE', d:'Cât de tare luminează afișajul.'},
@@ -623,15 +623,12 @@ const TIP = {
   STEP:  ()=>({t:'PAS DE ACORD', d:`Cât sare frecvența la fiecare pas al dialului: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
   SPAN:  {t:'LĂȚIME SPECTRU', d:'Cât din bandă vezi în graficul de pe afișaj. Merge și cu rotița mouse-ului pe grafic.'},
   INFO:  {t:'INFO AFIȘAJ', d:'Schimbă ultimul rând de pe afișaj: numele canalului → ceas → sursa audio și starea conexiunii.'},
-  key:   {t:'TASTATURĂ', d:'Scrie direct o frecvență în MHz, apoi ENT: 1 2 1 . 1 → 121.100 (Dublin).', k:'Merge și de la tastatură: cifre + [Enter]'},
-  ENT:   {t:'ENTER', d:'Confirmă frecvența tastată.', k:'[Enter]'},
   VM:    {t:'VFO / MEMORIE', d:'VFO = acord liber pe orice frecvență. MEM = treci doar prin canalele salvate, cu ▲ ▼ sau dialul.'},
   SAVE:  {t:'SALVEAZĂ', d:'Salvează frecvența curentă ca un canal nou în memorie (le găsești în modul MEM).'},
-  CLR:   {t:'ANULEAZĂ', d:'Șterge ce ai tastat sau oprește scanarea.', k:'[Esc]'},
   DOWN:  {t:'ÎN JOS', d:'Un pas de frecvență în jos (în modul MEM: canalul anterior).', k:'[↓]'},
   UP:    {t:'ÎN SUS', d:'Un pas de frecvență în sus (în modul MEM: canalul următor).', k:'[↑]'},
   SCAN:  {t:'SCANARE', d:'Caută singur următorul canal cu semnal și se oprește pe el. În modul MEM ascultă pe rând fiecare canal salvat. Apasă din nou pentru stop.'},
-  freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz: 108–137 = aviație (AM), 137–174 = urgențe, tren, maritim, meteo (FM).'},
+  freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz: 108–137 = aviație (AM), 137–174 = urgențe, tren, maritim, meteo (FM). Poți scrie o frecvență direct de la tastatura calculatorului, ex. 121.1 + Enter.', k:'[0-9] [.] [Enter] · [Esc] anulează'},
   smeter:{t:'S-METRU', d:'Puterea semnalului recepționat.'},
   scope: {t:'SPECTRU', d:'Vârfurile sunt canale cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
   text:  {t:'NUME / STARE', d:'Numele canalului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
@@ -665,40 +662,36 @@ const modes=$('modes');
 ].forEach(([n,fn],i)=>mkBtn(modes,{x:620,y:78+i*66,w:96,h:36,label:`<span style="font-size:14px;letter-spacing:1px">${n}</span>`,fn,title:n,help:TIP[n]}));
 
 const keys=$('keys');
-['1','2','3','4','5','6','7','8','9','.','0','ENT'].forEach((k,i)=>{
-  const x=746+(i%3)*80, y=28+Math.floor(i/3)*44;
-  mkBtn(keys,{x,y,label: k==='ENT'?'<span style="font-size:15px">ENT</span>':`<b>${k}</b>`,cls:'key',fn:()=> k==='ENT'?enter():keyIn(k),title:k,
-    help: k==='ENT' ? TIP.ENT : TIP.key});
-});
-[
-  ['VFO/MEM',746,214,70,vm,TIP.VM,'V/M'],['SAVE',826,214,70,mw,TIP.SAVE],['CLR',906,214,70,clr,TIP.CLR],
-  ['▼ DOWN',746,258,70,()=>tune(-1),TIP.DOWN],['SCAN',826,258,70,scan,TIP.SCAN],['UP ▲',906,258,70,()=>tune(1),TIP.UP],
-].forEach(([n,x,y,w,fn,help,aria])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:aria||n,help}));
-
-/* canale rapide: tab-uri pe regiuni (ROMÂNIA / LUME / HF) + până la 6 canale pe tab */
+/* coloana din dreapta: sus tab-urile pe domenii, sub ele canalele, jos acordul (▼ SCAN ▲) și memoriile.
+   (Tastatura numerică a fost scoasă; o frecvență se poate scrie în continuare de la tastatura calculatorului + Enter.) */
 const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*', name:'CANALE', info:''}];
 const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
 S.grp = grpOf(nearest()); S.autoGrp = null;
 // tab-uri pe cel mult 3 coloane (2 rânduri dacă sunt multe domenii), apoi canalele
 const tabCols = Math.min(3, GROUPS.length), tabRows = GROUPS.length<2 ? 1 : Math.ceil(GROUPS.length/tabCols);
-const tabGap = 10, tabW = (230 - (tabCols-1)*tabGap) / tabCols, tabsTop = 306, chTop = tabsTop + tabRows*26 + 8;
-const tabFont = 'font-size:10px;letter-spacing:.4px';
-const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{x:746+(i%tabCols)*(tabW+tabGap),y:tabsTop+Math.floor(i/tabCols)*26,w:tabW,h:22,cls:'tab',
+const tabGap = 10, tabW = (230 - (tabCols-1)*tabGap) / tabCols, tabsTop = 26, tabH = 28, tabStep = 34;
+const chTop = tabsTop + tabRows*tabStep + 12, ctrlTop = 344;
+const tabFont = 'font-size:10.5px;letter-spacing:.2px';
+const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{x:746+(i%tabCols)*(tabW+tabGap),y:tabsTop+Math.floor(i/tabCols)*tabStep,w:tabW,h:tabH,cls:'tab',
   label:`<span style="${tabFont};white-space:nowrap">${g.name}</span>`, title:g.name,
   help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
 if(GROUPS.length<2){                     // o singură listă → doar un titlu, nu un buton
   const l=document.createElement('div'); l.className='lbl grp-lbl'; l.textContent=GROUPS[0].name;
-  Object.assign(l.style,{left:'746px',top:(tabsTop+4)+'px',width:'230px'}); keys.appendChild(l);
+  Object.assign(l.style,{left:'746px',top:(tabsTop+6)+'px',width:'230px'}); keys.appendChild(l);
   HELP.attach(l, {t:GROUPS[0].name, d:GROUPS[0].info});
 }
-// rândurile de canale se strâng dacă un tab are mai mult de 9 canale (spațiu până la marginea carcasei)
+// rândurile de canale se strâng dacă un tab are multe canale (spațiu până la butoanele de acord)
 const chRowsMax = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/3)), 1);
-const chGap = Math.min(33, Math.floor((484 - chTop) / chRowsMax)), chH = chGap - 5;
+const chGap = Math.min(46, Math.floor((ctrlTop - 16 - chTop) / chRowsMax)), chH = chGap - 8;
+[
+  ['▼ DOWN',746,ctrlTop,70,()=>tune(-1),TIP.DOWN],['SCAN',826,ctrlTop,70,scan,TIP.SCAN],['UP ▲',906,ctrlTop,70,()=>tune(1),TIP.UP],
+  ['VFO/MEM',746,ctrlTop+46,110,vm,TIP.VM,'V/M'],['SAVE',866,ctrlTop+46,110,mw,TIP.SAVE],
+].forEach(([n,x,y,w,fn,help,aria])=>mkBtn(keys,{x,y,w,h:36,label:n,fn,title:aria||n,help}));
 const chEls = CHANNELS.map(c=>{
   const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
   const lbl = c.btn || c.mount.toUpperCase();
   return mkBtn(keys,{x:746+(i%3)*80,y:chTop+Math.floor(i/3)*chGap,w:70,h:chH,cls:'chbtn',
-    label:`<span style="font-size:${lbl.length>11?10:11.5}px;white-space:nowrap">${lbl}</span>`, title:c.name+' '+fmtF(c.f), help:chHelp(c),
+    label:`<span style="font-size:${lbl.length>11?10.5:12.5}px;white-space:nowrap">${lbl}</span>`, title:c.name+' '+fmtF(c.f), help:chHelp(c),
     fn:()=>{ if(S.lock) return; if(!S.power) power(); if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }});
 });
 function renderGroups(){
