@@ -72,7 +72,14 @@ button{font-family:inherit}
 .key{width:70px;height:34px;font-size:20px}
 .key b{position:absolute;right:10px;top:4px;font-weight:600}
 .small{height:21px;width:54px;font-size:11px;border-radius:4px}
-.mode-lbl{position:absolute;width:30px;text-align:center;font:600 12px/1 "Barlow Condensed";color:#eee;letter-spacing:.5px}
+.mode-lbl{position:absolute;width:38px;text-align:center;font:600 11px/1 "Barlow Condensed";color:#eee;letter-spacing:.5px;cursor:help}
+.btn.tab{color:#bbb;background:linear-gradient(180deg,#2e3034,#1c1d20)}
+.btn.tab.on{color:#ffb04a;background:linear-gradient(180deg,#1f2023,#131416);box-shadow:inset 0 2px 5px rgba(0,0,0,.75),0 0 0 1px #0a0a0b}
+.btn.tab.on::after{left:35%;right:35%;top:auto;bottom:3px;width:auto;height:2px;border-radius:1px}
+.btn.chbtn.on{color:#ffb04a}
+.btn.power.idle{animation:pwrGlow 1.8s ease-in-out infinite}
+.hint b{color:#ff9a1f;font-weight:700}
+@keyframes pwrGlow{50%{box-shadow:0 0 0 2px #ff9a1f,0 0 18px 4px rgba(255,140,30,.5)}}
 .mode-btn{width:30px;height:22px;border-radius:3px}
 .lbl{position:absolute;font:600 13px/1 "Barlow Condensed";letter-spacing:1px;color:#e6e6e6;text-align:center}
 
@@ -185,10 +192,10 @@ button{font-family:inherit}
     </div>
     <span class="ind on" id="i-span" style="left:276px;top:130px">SPAN</span>
     <span class="ind on" id="i-spanv" style="left:276px;top:142px">±250k</span>
-    <canvas class="scope" id="scope" title="Bandscope – click pentru acord"></canvas>
+    <canvas class="scope" id="scope"></canvas>
     <div class="textline" id="text"></div>
     <div class="glass"></div>
-    <button class="sdr-open" id="sdrOpen" title="Deschide receptorul web într-un tab nou">▶ WEB SDR</button>
+    <button class="sdr-open" id="sdrOpen">▶ WEB SDR</button>
   </div>
 
   <div id="modes"></div>
@@ -211,13 +218,14 @@ button{font-family:inherit}
   </div>
   <div id="keys"></div>
 
-  <div class="hint">POWER pornește receptorul · rotește dialul (drag / rotiță) · click pe spectru = acord · tastatură: cifre + ENT (HF: 5.505 ENT) · ↑ ↓ acord · Esc = CLR · <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
+  <div class="hint"><b>①</b> alege un canal din dreapta-jos &nbsp;<b>②</b> AF = volum &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
 
 <script src="channels.js"></script>
 <script src="sdr.js"></script>
+<script src="help.js"></script>
 <script>
 (() => {
 /* Configurarea (nume, canale, frecvențe) e în channels.js – comună cu versiunea de mobil. */
@@ -406,6 +414,8 @@ function update(){
   lcd.classList.toggle('on', S.power);
   lcd.style.filter = `brightness(${.55+.45*S.dim})`;
   $('led').classList.toggle('on', S.power);
+  $('power').classList.toggle('idle', !S.power);      // pulsează până îl pornești
+  renderGroups();
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
   ind('i-vfo',S.vfo); ind('i-mem',!S.vfo); ind('i-am',S.mode==='AM'); ind('i-fm',S.mode==='FM'); ind('i-usb',S.mode==='USB');
   ind('i-scan',S.scan); ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
@@ -603,61 +613,130 @@ function scan(){
 }
 function stopScan(){ if(S.scan){ clearInterval(S.scan); S.scan=null; save(); update(); } }
 
+/* ---------------- texte de ajutor (popup la hover / apăsare lungă) ---------------- */
+const fmtF = f => f>=100000 ? (f/1000).toFixed(3)+' MHz' : f+' kHz';
+const TIP = {
+  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Sfat: un clic pe un canal din dreapta-jos îl pornește automat.'},
+  af:    {t:'VOLUM (AF)', d:'Butonul mic din mijloc. Trage în sus/jos sau folosește rotița mouse-ului.'},
+  sql:   {t:'SQUELCH (SQL)', d:'Inelul mare din jur. Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
+  dim:   {t:'LUMINOZITATE', d:'Cât de tare luminează afișajul.'},
+  clock: {t:'CEAS', d:'Arată pe afișaj ora UTC (ora folosită în aviație) și ora locală. Apasă din nou ca să revii la numele canalului.'},
+  lock:  {t:'BLOCARE', d:'Blochează dialul și tastele, ca să nu schimbi frecvența din greșeală.'},
+  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența: trage în cerc sau folosește rotița mouse-ului. În modul MEM trece prin canalele salvate.', k:'Taste: [↑] [↓]'},
+  AM:    {t:'MOD AM', d:'Modul aviației civile pe VHF (118–137 MHz). Se alege singur când ești pe un canal VHF.'},
+  FM:    {t:'MOD FM', d:'Nu se folosește în aviație – pe FM semnalele de aici nu se aud corect.'},
+  USB:   {t:'MOD USB', d:'Bandă laterală superioară, folosită pe unde scurte (HF): VOLMET, Shanwick. Se alege singur pe HF.'},
+  STEP:  ()=>({t:'PAS DE ACORD', d:`Cât sare frecvența la fiecare pas al dialului: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
+  FILTER:{t:'FILTRU', d:'Lățimea filtrului (FIL1 lat … FIL3 îngust). Larg = prinzi semnalul și dacă nu ești fix pe frecvență; îngust = mai puțin zgomot.'},
+  AGC:   {t:'AGC', d:'Control automat al amplificării: cât de repede reacționează S-metrul (F = rapid, S = lent, OFF = oprit).'},
+  SPAN:  {t:'LĂȚIME SPECTRU', d:'Cât din bandă vezi în graficul de pe afișaj. Merge și cu rotița mouse-ului pe grafic.'},
+  INFO:  {t:'INFO AFIȘAJ', d:'Schimbă ultimul rând de pe afișaj: numele canalului → ceas → sursa audio și starea conexiunii.'},
+  pamp:  {t:'PREAMPLIFICATOR', d:'Amplifică semnalele slabe – dar și zgomotul.'},
+  att:   {t:'ATENUATOR', d:'Reduce semnalele prea puternice și zgomotul.'},
+  nr:    {t:'REDUCERE ZGOMOT', d:'Atenuează fâșâitul de fond.'},
+  anf:   {t:'FILTRU NOTCH AUTOMAT', d:'Scoate tonurile și fluierăturile constante.'},
+  nb:    {t:'NOISE BLANKER', d:'Taie paraziții scurți, de tip pocnitură.'},
+  key:   {t:'TASTATURĂ', d:'Scrie direct o frecvență, apoi ENT. VHF în MHz: 1 1 9 . 1 → 119.100. Unde scurte în kHz: 5 5 0 5 → 5505.', k:'Merge și de la tastatură: cifre + [Enter]'},
+  ENT:   {t:'ENTER', d:'Confirmă frecvența tastată.', k:'[Enter]'},
+  VM:    {t:'VFO / MEMORIE', d:'VFO = acord liber pe orice frecvență. MEM = treci doar prin canalele salvate, cu ▲ ▼ sau dialul.'},
+  SAVE:  {t:'SALVEAZĂ', d:'Salvează frecvența curentă ca un canal nou în memorie (le găsești în modul MEM).'},
+  CLR:   {t:'ANULEAZĂ', d:'Șterge ce ai tastat sau oprește scanarea.', k:'[Esc]'},
+  DOWN:  {t:'ÎN JOS', d:'Un pas de frecvență în jos (în modul MEM: canalul anterior).', k:'[↓]'},
+  UP:    {t:'ÎN SUS', d:'Un pas de frecvență în sus (în modul MEM: canalul următor).', k:'[↑]'},
+  SCAN:  {t:'SCANARE', d:'Caută singur următorul canal cu semnal și se oprește pe el. În modul MEM ascultă pe rând fiecare canal salvat. Apasă din nou pentru stop.'},
+  freq:  {t:'FRECVENȚA', d:'VHF (aviație civilă) în MHz, ex. 119.100. Unde scurte (HF) în kHz: 5.505 = 5505 kHz.'},
+  smeter:{t:'S-METRU', d:'Puterea semnalului recepționat. Pe canalele HF arată nivelul real măsurat de receptorul web.'},
+  scope: {t:'SPECTRU', d:'Vârfurile sunt canale cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
+  text:  {t:'NUME / STARE', d:'Numele canalului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
+  live:  {t:'LIVE', d:'Sursa audio (LiveATC sau receptorul web) e conectată.'},
+  rx:    {t:'RX', d:'Se aude un semnal chiar acum (squelch deschis).'},
+  vfo:   {t:'VFO / MEMO', d:'Arată modul: VFO = acord liber, MEMO = canale salvate.'},
+  sdrOpen: ()=>{
+    const why = S.streamState==='WEB ONLY' ? (SDR.isSecurePage() ? 'site-ul e pe https, iar receptoarele doar pe http' : 'receptorul WebSDR se ascultă doar pe pagina lui')
+              : S.streamState==='BUSY' ? 'receptoarele sunt ocupate acum' : 'receptoarele nu răspund acum';
+    return {t:'DESCHIDE RECEPTORUL WEB', d:`Canalul nu se poate reda direct în radio (${why}). Se deschide receptorul într-un tab nou, deja acordat pe ${S.ch?fmtF(S.ch.f):''}.`};
+  },
+};
+const chHelp = c => () => ({ t:c.name, d:c.info || '',
+  k: `${fmtF(c.f)} · ${c.mode||'AM'} · ${isSdr(c) ? 'receptor web (KiwiSDR / WebSDR)' : 'LiveATC'}` });
+
 /* ---------------- build controls ---------------- */
-function mkBtn(parent, {x,y,w,h,label,cls='',fn,title}){
+function mkBtn(parent, {x,y,w,h,label,cls='',fn,title,help}){
   const b=document.createElement('button');
   b.className='btn '+cls; b.style.left=x+'px'; b.style.top=y+'px';
   if(w) b.style.width=w+'px'; if(h) b.style.height=h+'px';
   b.innerHTML=label; b.addEventListener('click',fn);
-  b.setAttribute('aria-label', title || b.textContent); if(title) b.title=title;
+  b.setAttribute('aria-label', title || b.textContent);
+  if(help) HELP.attach(b, help);
   parent.appendChild(b); return b;
 }
 const modes=$('modes');
 const modeDefs=[
   ['AM',()=>setMode('AM')],['FM',()=>setMode('FM')],['USB',()=>setMode('USB')],
-  ['TS',()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }],
-  ['FIL',()=>{ S.fil = S.fil===2?1:S.fil===1?3:2; update(); }],
+  ['STEP',()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }],
+  ['FILTER',()=>{ S.fil = S.fil===2?1:S.fil===1?3:2; update(); }],
   ['AGC',()=>{ S.agc = S.agc==='F'?'S':S.agc==='S'?'OFF':'F'; update(); }],
   ['SPAN',()=>{ S.span=(S.span+1)%SPANS.length; update(); }],
-  ['SEL',()=>{ S.textMode=(S.textMode+1)%3; update(); }],
+  ['INFO',()=>{ S.textMode=(S.textMode+1)%3; update(); }],
 ];
 modeDefs.forEach(([n,fn],i)=>{
   const col = i<6 ? i%3 : (i-6), x=620+col*38;
   const y = i<3 ? 80 : i<6 ? 150 : 226;
-  const l=document.createElement('div'); l.className='mode-lbl'; l.textContent=n; l.style.left=x+'px'; l.style.top=(y-16)+'px'; modes.appendChild(l);
-  mkBtn(modes,{x,y,label:'',cls:'mode-btn',fn,title:n});
+  const l=document.createElement('div'); l.className='mode-lbl'; l.textContent=n; l.style.left=(x-4)+'px'; l.style.top=(y-16)+'px'; modes.appendChild(l);
+  HELP.attach(l, TIP[n]);
+  mkBtn(modes,{x,y,label:'',cls:'mode-btn',fn,title:n,help:TIP[n]});
 });
 
 const bottom=$('bottom');
 [['P.AMP','pamp'],['ATT','att'],['NR','nr'],['ANF','anf'],['NB','nb']].forEach(([n,k],i)=>{
-  const b=mkBtn(bottom,{x:244+i*60,y:398,label:n,cls:'small',fn:()=>{ if(!S.power) return; S[k]=!S[k]; b.classList.toggle('on',S[k]); update(); }});
+  const b=mkBtn(bottom,{x:244+i*60,y:398,label:n,cls:'small',help:TIP[k],fn:()=>{ if(!S.power) return; S[k]=!S[k]; b.classList.toggle('on',S[k]); update(); }});
 });
 
 const keys=$('keys');
 ['1','2','3','4','5','6','7','8','9','.','0','ENT'].forEach((k,i)=>{
   const x=746+(i%3)*80, y=28+Math.floor(i/3)*44;
-  mkBtn(keys,{x,y,label: k==='ENT'?'<span style="font-size:15px">ENT</span>':`<b>${k}</b>`,cls:'key',fn:()=> k==='ENT'?enter():keyIn(k),title:k});
+  mkBtn(keys,{x,y,label: k==='ENT'?'<span style="font-size:15px">ENT</span>':`<b>${k}</b>`,cls:'key',fn:()=> k==='ENT'?enter():keyIn(k),title:k,
+    help: k==='ENT' ? TIP.ENT : TIP.key});
 });
 [
-  ['V/M',746,214,70,vm],['MW',826,214,70,mw],['CLR',906,214,70,clr],
-  ['M-CH ▲',746,258,110,()=>{ if(!S.power) return; if(S.vfo) vm(); else tune(1); }],['SCAN',866,258,110,scan],
-  ['▼ DN',746,302,110,()=>tune(-1)],['UP ▲',866,302,110,()=>tune(1)],
-].forEach(([n,x,y,w,fn])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:n}));
+  ['VFO/MEM',746,214,70,vm,TIP.VM,'V/M'],['SAVE',826,214,70,mw,TIP.SAVE],['CLR',906,214,70,clr,TIP.CLR],
+  ['▼ DOWN',746,258,110,()=>tune(-1),TIP.DOWN],['UP ▲',866,258,110,()=>tune(1),TIP.UP],
+  ['SCAN',746,302,230,scan,TIP.SCAN],
+].forEach(([n,x,y,w,fn,help,aria])=>mkBtn(keys,{x,y,w,h:34,label:n,fn,title:aria||n,help}));
 
-/* channel quick-select list under the arrows (rândurile se strâng dacă sunt multe canale) */
-const qsRows = Math.ceil(CHANNELS.length/3), qsGap = Math.min(30, Math.floor(124/qsRows));
-CHANNELS.forEach((c,i)=>{
+/* canale rapide: tab-uri pe regiuni (ROMÂNIA / LUME / HF) + până la 6 canale pe tab */
+const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*', name:'CANALE', info:''}];
+const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
+S.grp = grpOf(nearest()); S.autoGrp = null;
+const tabW = (230 - (GROUPS.length-1)*10) / GROUPS.length;
+const tabEls = GROUPS.map((g,i)=>mkBtn(keys,{x:746+i*(tabW+10),y:348,w:tabW,h:22,cls:'tab',
+  label:`<span style="font-size:11px;letter-spacing:1px">${g.name}</span>`, title:g.name,
+  help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
+const chEls = CHANNELS.map(c=>{
+  const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
   const lbl = c.btn || c.mount.toUpperCase();
-  mkBtn(keys,{x:746+(i%3)*80,y:352+Math.floor(i/3)*qsGap,w:70,h:qsGap-5,label:`<span style="font-size:${lbl.length>11?10:11}px;white-space:nowrap">${lbl}</span>`,
-    fn:()=>{ if(!S.power||S.lock) return; if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }, title:c.name+(isSdr(c)?' · '+c.f+' kHz '+(c.mode||'USB'):'')});
+  return mkBtn(keys,{x:746+(i%3)*80,y:378+Math.floor(i/3)*33,w:70,h:28,cls:'chbtn',
+    label:`<span style="font-size:${lbl.length>11?10:11.5}px;white-space:nowrap">${lbl}</span>`, title:c.name+' '+fmtF(c.f), help:chHelp(c),
+    fn:()=>{ if(S.lock) return; if(!S.power) power(); if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }});
 });
+function renderGroups(){
+  // tab-ul urmează canalul acordat (dar poți răsfoi alt tab fără să schimbi frecvența)
+  const cg = S.ch ? grpOf(S.ch) : null;
+  if(cg && cg!==S.autoGrp){ S.autoGrp = cg; S.grp = cg; }
+  GROUPS.forEach((g,i)=>tabEls[i].classList.toggle('on', g.id===S.grp));
+  CHANNELS.forEach((c,i)=>{ chEls[i].style.display = grpOf(c)===S.grp ? '' : 'none'; chEls[i].classList.toggle('on', S.power && S.ch===c); });
+}
 
 $('power').addEventListener('click',power);
 $('clock').addEventListener('click',()=>{ S.textMode = S.textMode===1?0:1; update(); });
 $('lock').addEventListener('click',e=>{ S.lock=!S.lock; e.currentTarget.classList.toggle('on',S.lock); update(); });
+HELP.attach($('power'), TIP.power); HELP.attach($('clock'), TIP.clock); HELP.attach($('lock'), TIP.lock);
+HELP.attach($('freq'), TIP.freq); HELP.attach(document.querySelector('.smeter'), TIP.smeter);
+HELP.attach($('scope'), TIP.scope); HELP.attach($('text'), TIP.text); HELP.attach($('sdrOpen'), TIP.sdrOpen);
+HELP.attach($('i-live'), TIP.live); HELP.attach($('i-rx'), TIP.rx); HELP.attach($('i-vfo'), TIP.vfo); HELP.attach($('i-mem'), TIP.vfo);
 
 /* knobs */
-function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles}){
+function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles,helps}){
   const host=$('knobs');
   const ticks=document.createElement('div'); ticks.className='ticks';
   for(let i=0;i<11;i++){
@@ -665,8 +744,9 @@ function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles}){
     const d=document.createElement('i'); d.style.left=(cx+Math.sin(a)*R)+'px'; d.style.top=(cy-Math.cos(a)*R)+'px'; ticks.appendChild(d);
   }
   host.appendChild(ticks);
-  const mk=(rad,cls,g,s,title)=>{
-    const k=document.createElement('div'); k.className='knob '+cls; k.title=title; k.setAttribute('aria-label',title);
+  const mk=(rad,cls,g,s,title,help)=>{
+    const k=document.createElement('div'); k.className='knob '+cls; k.setAttribute('aria-label',title);
+    if(help) HELP.attach(k, help);
     Object.assign(k.style,{left:(cx-rad)+'px',top:(cy-rad)+'px',width:rad*2+'px',height:rad*2+'px'});
     k.innerHTML='<div class="mark"></div>'; k.tabIndex=0;
     const draw=()=>k.style.transform=`rotate(${-135+g()*270}deg)`;
@@ -684,14 +764,15 @@ function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles}){
     });
     host.appendChild(k); draw(); return k;
   };
-  mk(r,'outer',get,set,titles[0]);
-  if(getI) mk(ri,'inner',getI,setI,titles[1]);
+  mk(r,'outer',get,set,titles[0],helps[0]);
+  if(getI) mk(ri,'inner',getI,setI,titles[1],helps[1]);
 }
-makeKnob({cx:292,cy:330,r:42,ri:27,get:()=>S.sql,set:v=>S.sql=v,getI:()=>S.af,setI:v=>S.af=v,titles:['SQL','AF (volum)']});
-makeKnob({cx:392,cy:330,r:30,ri:24,get:()=>S.dim,set:v=>S.dim=v,getI:()=>S.dim,setI:v=>S.dim=v,titles:['DIMMER','DIMMER']});
+makeKnob({cx:292,cy:330,r:42,ri:27,get:()=>S.sql,set:v=>S.sql=v,getI:()=>S.af,setI:v=>S.af=v,titles:['SQL','AF (volum)'],helps:[TIP.sql,TIP.af]});
+makeKnob({cx:392,cy:330,r:30,ri:24,get:()=>S.dim,set:v=>S.dim=v,getI:()=>S.dim,setI:v=>S.dim=v,titles:['DIMMER','DIMMER'],helps:[TIP.dim,TIP.dim]});
 
 /* main dial */
 const dial=$('dial'), face=$('dialFace');
+HELP.attach(dial, TIP.dial);
 let rot=0;
 function spin(deg){ rot+=deg; dial.style.background=`repeating-conic-gradient(from ${rot}deg,#232428 0 3deg,#0d0e10 3deg 6deg)`; face.style.transform=`rotate(${rot}deg)`; }
 let acc=0, lastA=null;

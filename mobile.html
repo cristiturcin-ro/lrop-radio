@@ -118,6 +118,8 @@ body{
 .btn.on{color:var(--amber);text-shadow:0 0 8px var(--amber-glow)}
 .btn.on::after{content:"";position:absolute;top:7px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber-2)}
 .btn.pwr{color:var(--amber)}
+.btn.pwr.idle{animation:pwrGlow 1.8s ease-in-out infinite}
+@keyframes pwrGlow{50%{box-shadow:0 0 0 2px var(--amber-2),0 0 18px 4px rgba(255,140,30,.5)}}
 .btn.arrow{font-size:22px}
 .foot{display:flex;justify-content:space-between;align-items:center;padding:0 6px;font:600 11px/1 "Barlow Condensed";letter-spacing:2px;color:#8b8d92}
 .foot a{color:var(--amber);text-decoration:none;letter-spacing:1px}
@@ -164,7 +166,7 @@ body{
     </div>
 
     <div class="pad" id="pad"></div>
-    <div class="foot"><span>AIRBAND · HF RECEIVER</span><a href="index.html?desktop">DESKTOP ›</a></div>
+    <div class="foot"><span>ȚINE APĂSAT UN BUTON = AJUTOR</span><a href="index.html?desktop">DESKTOP ›</a></div>
   </div>
 </div>
 
@@ -172,6 +174,7 @@ body{
 
 <script src="channels.js"></script>
 <script src="sdr.js"></script>
+<script src="help.js"></script>
 <script>
 (() => {
 const CFG = window.RADIO_CONFIG;
@@ -411,23 +414,42 @@ function mode(){
 }
 
 /* ---------- buttons ---------- */
+/* texte de ajutor: ține apăsat pe un buton (sau mouse-ul deasupra, pe desktop) */
+const HLP={
+  PWR:{t:'PORNIRE / OPRIRE', d:'Pornește radioul. Apoi alege canalul cu ◀ ▶.'},
+  MON:{t:'MONITOR', d:'Deschide squelch-ul: auzi și fâșâitul de fond. Util ca să verifici că merge sunetul.'},
+  LIGHT:{t:'LUMINĂ', d:'Trei trepte de luminozitate pentru afișaj.'},
+  ARROW:{t:'CANAL ◀ ▶', d:'Canalul anterior / următor (în modul VFO: un pas de frecvență). Ține apăsat ca să derulezi repede. Poți și glisa pe afișaj.'},
+  SCAN:{t:'SCANARE', d:'Pe canale: ascultă fiecare canal câteva secunde, pe rând. În VFO: caută următorul semnal și se oprește pe el. Apasă din nou pentru stop.'},
+  MODE:{t:'CANALE / VFO', d:'CH = treci prin canalele gata făcute cu ◀ ▶. VFO = acord liber pe frecvență, cu pasul ales la STEP.'},
+  STEP:()=>({t:'PAS DE ACORD', d:`Cât sare frecvența în modul VFO: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
+  LOCK:{t:'BLOCARE', d:'Blochează tastele ca să nu schimbi canalul din greșeală (ex. în buzunar).'},
+  SQL:{t:'SQUELCH (SQL)', d:'Taie fâșâitul când nu vorbește nimeni. Trage stânga/dreapta: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
+  VOL:{t:'VOLUM', d:'Trage stânga/dreapta ca să dai mai tare sau mai încet.'},
+  WEB:()=>{
+    const why = S.streamState==='WEB ONLY' ? (SDR.isSecurePage() ? 'site-ul e pe https, receptoarele doar pe http' : 'receptorul WebSDR se ascultă doar pe pagina lui')
+              : S.streamState==='BUSY' ? 'receptoarele sunt ocupate acum' : 'receptoarele nu răspund acum';
+    return {t:'DESCHIDE RECEPTORUL WEB', d:`Canalul nu se poate reda direct în radio (${why}). Se deschide receptorul într-un tab nou, deja acordat${S.feed?' pe '+S.feed.f+' kHz':''}.`};
+  },
+};
 const DEF=[
-  ['PWR','','pwr',power],
-  ['MON','SQL OPEN','mon',()=>{ if(!S.power) return; S.mon=!S.mon; update(); syncBtns(); }],
-  ['LIGHT','',null,()=>{ S.light=(S.light+2)%3; update(); }],
-  ['◀','','arrow',()=>step(-1)],
-  ['SCAN','','scan',scan],
-  ['▶','','arrow',()=>step(1)],
-  ['CH/VFO','MODE',null,mode],
-  ['TS','STEP',null,()=>{ if(blocked()) return; S.step=S.step===25?5:S.step===5?1:25; if(!S.chMode) flash('STEP '+S.step+' KHZ'); update(); }],
-  ['LOCK','','lock',()=>{ if(!S.power) return; S.lock=!S.lock; flash(S.lock?'KEYS LOCKED':'UNLOCKED'); syncBtns(); }],
+  ['PWR','','pwr',power,HLP.PWR],
+  ['MON','SQL OPEN','mon',()=>{ if(!S.power) return; S.mon=!S.mon; update(); syncBtns(); },HLP.MON],
+  ['LIGHT','',null,()=>{ S.light=(S.light+2)%3; update(); },HLP.LIGHT],
+  ['◀','','arrow',()=>step(-1),HLP.ARROW],
+  ['SCAN','','scan',scan,HLP.SCAN],
+  ['▶','','arrow',()=>step(1),HLP.ARROW],
+  ['CH/VFO','MODE',null,mode,HLP.MODE],
+  ['STEP','25 · 5 · 1 kHz',null,()=>{ if(blocked()) return; S.step=S.step===25?5:S.step===5?1:25; if(!S.chMode) flash('STEP '+S.step+' KHZ'); update(); },HLP.STEP],
+  ['LOCK','','lock',()=>{ if(!S.power) return; S.lock=!S.lock; flash(S.lock?'KEYS LOCKED':'UNLOCKED'); syncBtns(); },HLP.LOCK],
 ];
 const pad=$('pad'), btnEls={};
-DEF.forEach(([label,sub,key,fn])=>{
+DEF.forEach(([label,sub,key,fn,help])=>{
   const b=document.createElement('button');
   b.className='btn'+(key==='pwr'?' pwr':'')+(key==='arrow'?' arrow':'');
   b.innerHTML=label+(sub?`<small>${sub}</small>`:'');
   b.setAttribute('aria-label',label==='◀'?'Înapoi':label==='▶'?'Înainte':label);
+  HELP.attach(b, help, {touch: key!=='arrow'});      // săgețile folosesc deja apăsarea lungă pentru derulare
   pad.appendChild(b);
   if(key && key!=='arrow' && key!=='pwr') btnEls[key]=b;
   if(key==='pwr') btnEls.pwr=b;
@@ -442,6 +464,7 @@ DEF.forEach(([label,sub,key,fn])=>{
 });
 function syncBtns(){
   btnEls.pwr.classList.toggle('on',S.power);
+  btnEls.pwr.classList.toggle('idle',!S.power);       // pulsează până îl pornești
   btnEls.mon.classList.toggle('on',S.mon);
   btnEls.scan.classList.toggle('on',!!S.scan);
   btnEls.lock.classList.toggle('on',S.lock);
@@ -471,6 +494,7 @@ function knob(el, get, set, label){
 }
 knob($('volKnob'),()=>S.vol,v=>S.vol=v,'VOL');
 knob($('sqlKnob'),()=>S.sql,v=>S.sql=v,'SQL');
+HELP.attach($('volKnob'), HLP.VOL); HELP.attach($('sqlKnob'), HLP.SQL); HELP.attach(sdrBtn, HLP.WEB);
 
 /* ---------- swipe pe display ---------- */
 let sx=null, sy=null;
