@@ -45,6 +45,9 @@ window.RADIO_CONFIG = {
       info:'Los Angeles (KLAX) – SoCal Approach, finala nord și sud: avioanele aliniate pentru aterizare. 124.900.' },
     { f:120350, name:'SAN FRANCISCO', btn:'SAN FRANCISCO', group:'AV', mount:'ksfo_app2',
       info:'San Francisco (KSFO) – NorCal Approach, finala pistelor 28L/R. 120.350.' },
+    { f:132700, name:'VANCOUVER',     btn:'VANCOUVER',     group:'AV', nominal:true, source:'ScanBC',
+      url:'https://icecast0.scanbc.com/cyvr1_app',
+      info:'Vancouver (CYVR) – Vancouver Terminal: apropierea, sosirile și plecările din jurul aeroportului.' },
     { f:119100, name:'HONG KONG',     btn:'HONG KONG',     group:'AV', mount:'vhhh5',
       info:'Hong Kong (VHHH) – apropiere, plecări și director. Hong Kong Approach 119.100.' },
 

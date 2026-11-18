@@ -691,10 +691,13 @@ if(GROUPS.length<2){                     // o singură listă → doar un titlu,
   Object.assign(l.style,{left:'746px',top:(tabsTop+4)+'px',width:'230px'}); keys.appendChild(l);
   HELP.attach(l, {t:GROUPS[0].name, d:GROUPS[0].info});
 }
+// rândurile de canale se strâng dacă un tab are mai mult de 9 canale (spațiu până la marginea carcasei)
+const chRowsMax = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/3)), 1);
+const chGap = Math.min(33, Math.floor((484 - chTop) / chRowsMax)), chH = chGap - 5;
 const chEls = CHANNELS.map(c=>{
   const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
   const lbl = c.btn || c.mount.toUpperCase();
-  return mkBtn(keys,{x:746+(i%3)*80,y:chTop+Math.floor(i/3)*33,w:70,h:28,cls:'chbtn',
+  return mkBtn(keys,{x:746+(i%3)*80,y:chTop+Math.floor(i/3)*chGap,w:70,h:chH,cls:'chbtn',
     label:`<span style="font-size:${lbl.length>11?10:11.5}px;white-space:nowrap">${lbl}</span>`, title:c.name+' '+fmtF(c.f), help:chHelp(c),
     fn:()=>{ if(S.lock) return; if(!S.power) power(); if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }});
 });
