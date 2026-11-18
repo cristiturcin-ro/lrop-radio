@@ -102,6 +102,9 @@ body{
 .bars{display:flex;gap:2px;align-items:flex-end;height:12px}
 .bars i{flex:1;background:var(--seg-ghost)} .bars i.on{background:var(--seg-on)}
 .status{font:20px/1 "VT323",monospace;margin-top:5px;letter-spacing:1px;white-space:pre;overflow:hidden;text-overflow:ellipsis}
+.sdr-open{position:absolute;right:10px;bottom:6px;display:none;border:none;border-radius:3px;cursor:pointer;padding:5px 8px;
+  background:var(--seg-on);color:var(--lcd-on-1);font:700 13px/1 "Barlow Condensed";letter-spacing:1px}
+.sdr-open.show{display:block}
 
 /* ---------- keypad ---------- */
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -115,6 +118,8 @@ body{
 .btn.on{color:var(--amber);text-shadow:0 0 8px var(--amber-glow)}
 .btn.on::after{content:"";position:absolute;top:7px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber-2)}
 .btn.pwr{color:var(--amber)}
+.btn.pwr.idle{animation:pwrGlow 1.8s ease-in-out infinite}
+@keyframes pwrGlow{50%{box-shadow:0 0 0 2px var(--amber-2),0 0 18px 4px rgba(255,140,30,.5)}}
 .btn.arrow{font-size:22px}
 .foot{display:flex;justify-content:space-between;align-items:center;padding:0 6px;font:600 11px/1 "Barlow Condensed";letter-spacing:2px;color:#8b8d92}
 .foot a{color:var(--amber);text-decoration:none;letter-spacing:1px}
@@ -156,23 +161,30 @@ body{
         <div class="smeter"><div class="scale" id="scale"></div><div class="bars" id="bars"></div></div>
         <div class="status" id="status"></div>
         <div class="glass"></div>
+        <button class="sdr-open" id="sdrOpen">▶ WEB SDR</button>
       </div>
     </div>
 
     <div class="pad" id="pad"></div>
-    <div class="foot"><span>AIRBAND RECEIVER</span><a href="index.html?desktop">DESKTOP ›</a></div>
+    <div class="foot"><span>ȚINE APĂSAT UN BUTON = AJUTOR</span><a href="index.html?desktop">DESKTOP ›</a></div>
   </div>
 </div>
 
 <audio id="stream" preload="none" playsinline></audio>
 
 <script src="channels.js"></script>
+<script src="sdr.js"></script>
+<script src="help.js"></script>
 <script>
 (() => {
 const CFG = window.RADIO_CONFIG;
 const CH = [...CFG.channels, {f:CFG.guard, name:'GUARD (no feed)', mount:null}];
 const FEEDS = CFG.channels;
-const BAND = CFG.band;
+const BANDS = CFG.bands;
+const bandIdx = f => BANDS.findIndex(b => f>=b.lo && f<=b.hi);
+const curBand = () => BANDS[Math.max(0,bandIdx(S.freq))];
+const sdr = new SDR.KiwiPlayer();
+const isSdr = c => !!(c && c.rx);
 const $ = id => document.getElementById(id);
 const audio = $('stream'), lcd = $('lcd');
 $('logo').innerHTML = `${CFG.brand}<small>${CFG.brandSub}</small>`;
@@ -189,7 +201,8 @@ const S = {
 };
 S.ch = Math.min(S.ch, CH.length-1);
 S.freq = store.get('freq', CH[S.ch].f);
-if(S.chMode) S.freq = CH[S.ch].f;
+if(S.chMode || bandIdx(S.freq)<0) S.freq = CH[S.ch].f;
+S.band = bandIdx(S.freq); S.step = BANDS[S.band].step;
 
 /* ---------- 7-segment ---------- */
 const Hs=(x1,x2,y)=>`${x1},${y} ${x1+5},${y-5} ${x2-5},${y-5} ${x2},${y} ${x2-5},${y+5} ${x1+5},${y+5}`;
@@ -237,6 +250,12 @@ audio.addEventListener('playing', onStream('LIVE'));
 audio.addEventListener('waiting', onStream('BUFFER'));
 audio.addEventListener('error',   onStream('NO LINK'));
 function connect(c){
+  if(isSdr(c)){
+    sdr.attach(ctx);
+    sdr.start(c, st=>{ if(S.feed===c){ S.streamState=st; update(); } });
+    setMediaSession(c);
+    return;
+  }
   token++; audio.dataset.token=token; S.streamState='CONNECT';
   audio.src = CFG.streamBase + c.mount + '?t=' + Date.now();
   audio.muted = true;
@@ -246,8 +265,16 @@ function connect(c){
 }
 function disconnect(){
   clearTimeout(connectT); token++; audio.dataset.token=-1;
-  audio.pause(); audio.removeAttribute('src'); audio.load(); S.streamState='OFF';
+  audio.pause(); audio.removeAttribute('src'); audio.load(); sdr.stop(); S.streamState='OFF';
 }
+const sdrFallback = () => isSdr(S.feed) && ['WEB ONLY','NO RX','BUSY','DOWN','TIMEOUT','NO LINK','BLOCKED','NO AUDIO'].includes(S.streamState);
+const sdrBtn = $('sdrOpen');
+sdrBtn.addEventListener('pointerdown', e=>e.stopPropagation());   // să nu pornească swipe-ul de pe display
+sdrBtn.addEventListener('click', e=>{
+  e.stopPropagation();
+  const u = S.feed && SDR.openUrl(S.feed);
+  if(u) window.open(u, '_blank', 'noopener');
+});
 const nearestFeed = () => FEEDS.reduce((b,c)=>Math.abs(c.f-S.freq)<Math.abs(b.f-S.freq)?c:b);
 function retune(){
   if(!S.power){ if(S.feed){ S.feed=null; disconnect(); } return; }
@@ -265,7 +292,7 @@ function signal(){
 function levels(){
   const sig=signal(), live=S.streamState==='LIVE';
   let sLvl=.04;
-  if(sig>0 && live) sLvl=.45+.4*sig;
+  if(sig>0 && live) sLvl = isSdr(S.feed) && sdr.dbm!=null ? Math.max(.04, SDR.meter(sdr.dbm, 8.5, 15.2, NB)*(.55+.45*sig)) : .45+.4*sig;
   const open = S.mon || S.sql<.03 || sLvl > S.sql*.9;
   const n = 1-(live?sig*.95:0);
   const v = S.vol*S.vol;
@@ -275,15 +302,17 @@ function levels(){
 }
 function applyAudio(){
   const L=levels();
-  audio.volume=Math.min(1,L.streamVol);
-  audio.muted = L.streamVol<=0;            // iOS ignoră volume – folosim mute
+  const web = isSdr(S.feed);
+  audio.volume = web ? 0 : Math.min(1,L.streamVol);
+  audio.muted = web || L.streamVol<=0;     // iOS ignoră volume – folosim mute
+  sdr.setVolume(web ? Math.min(1,L.streamVol) : 0);
   if(noiseGain) noiseGain.gain.setTargetAtTime(L.noiseVol, ctx.currentTime, .03);
   return L;
 }
 function setMediaSession(c){
   if(!('mediaSession' in navigator)) return;
   try{
-    navigator.mediaSession.metadata = new MediaMetadata({title:c.name, artist:(c.f/1000).toFixed(3)+' MHz', album:'LiveATC · '+CFG.brand});
+    navigator.mediaSession.metadata = new MediaMetadata({title:c.name, artist:(c.f/1000).toFixed(3)+' MHz', album:(isSdr(c)?'KiwiSDR · ':'LiveATC · ')+CFG.brand});
     navigator.mediaSession.setActionHandler('nexttrack', ()=>step(1));
     navigator.mediaSession.setActionHandler('previoustrack', ()=>step(-1));
   }catch(e){}
@@ -291,6 +320,8 @@ function setMediaSession(c){
 
 /* ---------- render ---------- */
 function update(){
+  const bi=bandIdx(S.freq);
+  if(bi>=0 && bi!==S.band){ S.band=bi; S.step=BANDS[bi].step; }   // HF = 1 kHz, VHF = 25 kHz
   retune();
   const L=applyAudio();
   lcd.classList.toggle('on',S.power);
@@ -299,6 +330,7 @@ function update(){
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
   ind('i-ch',S.chMode); ind('i-vfo',!S.chMode); ind('i-scan',S.scan); ind('i-mon',S.mon); ind('i-lock',S.lock);
   ind('i-live',L.live&&S.feed); ind('i-rx',L.open&&L.sig>0&&L.live);
+  $('i-am').textContent = (S.feed && S.feed.mode) || curBand().mode;
 
   const mhz=Math.floor(S.freq/1000), khz=S.freq%1000;
   $('freq').innerHTML = digits(String(mhz).padStart(3,' ')+'.'+String(khz).padStart(3,'0'), true);
@@ -308,10 +340,13 @@ function update(){
   $('name').textContent = S.chMode ? CH[S.ch].name : (exact ? exact.name : 'VFO '+S.step+'k');
 
   let st;
+  const fb = S.power && sdrFallback();
   if(S.flash) st=S.flash;
-  else if(S.feed) st = S.streamState==='LIVE' ? 'LIVEATC '+S.feed.mount.toUpperCase() : S.streamState+'...';
+  else if(fb) st = S.streamState==='WEB ONLY' ? 'BROWSER ONLY' : S.streamState;
+  else if(S.feed) st = S.streamState==='LIVE' ? (isSdr(S.feed) ? 'KIWI '+(sdr.rx?sdr.rx.name:'') : 'LIVEATC '+S.feed.mount.toUpperCase()) : S.streamState+'...';
   else st = S.mon ? 'MONITOR' : 'NO SIGNAL';
   $('status').textContent=st;
+  sdrBtn.classList.toggle('show', fb && !S.flash);
   S.L=L;
 }
 function flash(t){ S.flash=t; update(); clearTimeout(flash.t); flash.t=setTimeout(()=>{S.flash=null;update();},1200); }
@@ -321,7 +356,12 @@ let last=0;
   requestAnimationFrame(tick);
   if(ts-last<70) return; last=ts;
   if(!S.power){ barEls.forEach(b=>b.classList.remove('on')); return; }
-  const L=S.L||levels();
+  let L=S.L||levels();
+  if(isSdr(S.feed) && S.streamState==='LIVE'){       // nivel real de la receptor → S-metru + squelch live
+    L=S.L=applyAudio();
+    const rx=L.open&&L.sig>0&&L.live;
+    $('i-rx').classList.toggle('on',rx); $('led').classList.toggle('rx',rx);
+  }
   let target=L.sLvl;
   if(L.sig>0&&L.live) target+=(Math.random()-.5)*.14; else target=Math.random()*target*1.3;
   S.level+=(target-S.level)*.5;
@@ -339,7 +379,7 @@ function step(d){
   else{
     let f=Math.round(S.freq/S.step)*S.step;
     if(f!==S.freq && Math.sign(d)===Math.sign(f-S.freq)) d-=Math.sign(d);
-    f+=d*S.step; if(f<BAND[0]) f=BAND[1]; if(f>BAND[1]) f=BAND[0];
+    const b=curBand(); f+=d*S.step; if(f<b.lo) f=b.hi; if(f>b.hi) f=b.lo;
     S.freq=f;
   }
   save(); update();
@@ -357,7 +397,7 @@ function scan(){
     S.scan=setInterval(()=>{ S.ch=(S.ch+1)%CH.length; S.freq=CH[S.ch].f; save(); update(); },6000);
   } else {
     S.scan=setInterval(()=>{
-      let f=S.freq+25; if(f>BAND[1]) f=BAND[0]; S.freq=f;
+      const b=curBand(); let f=S.freq+25; if(f>b.hi) f=b.lo; S.freq=f;
       const c=nearestFeed(); if(Math.abs(c.f-f)<25){ S.freq=c.f; stopScan(); }
       update();
     },45);
@@ -374,23 +414,42 @@ function mode(){
 }
 
 /* ---------- buttons ---------- */
+/* texte de ajutor: ține apăsat pe un buton (sau mouse-ul deasupra, pe desktop) */
+const HLP={
+  PWR:{t:'PORNIRE / OPRIRE', d:'Pornește radioul. Apoi alege canalul cu ◀ ▶.'},
+  MON:{t:'MONITOR', d:'Deschide squelch-ul: auzi și fâșâitul de fond. Util ca să verifici că merge sunetul.'},
+  LIGHT:{t:'LUMINĂ', d:'Trei trepte de luminozitate pentru afișaj.'},
+  ARROW:{t:'CANAL ◀ ▶', d:'Canalul anterior / următor (în modul VFO: un pas de frecvență). Ține apăsat ca să derulezi repede. Poți și glisa pe afișaj.'},
+  SCAN:{t:'SCANARE', d:'Pe canale: ascultă fiecare canal câteva secunde, pe rând. În VFO: caută următorul semnal și se oprește pe el. Apasă din nou pentru stop.'},
+  MODE:{t:'CANALE / VFO', d:'CH = treci prin canalele gata făcute cu ◀ ▶. VFO = acord liber pe frecvență, cu pasul ales la STEP.'},
+  STEP:()=>({t:'PAS DE ACORD', d:`Cât sare frecvența în modul VFO: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
+  LOCK:{t:'BLOCARE', d:'Blochează tastele ca să nu schimbi canalul din greșeală (ex. în buzunar).'},
+  SQL:{t:'SQUELCH (SQL)', d:'Taie fâșâitul când nu vorbește nimeni. Trage stânga/dreapta: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
+  VOL:{t:'VOLUM', d:'Trage stânga/dreapta ca să dai mai tare sau mai încet.'},
+  WEB:()=>{
+    const why = S.streamState==='WEB ONLY' ? (SDR.isSecurePage() ? 'site-ul e pe https, receptoarele doar pe http' : 'receptorul WebSDR se ascultă doar pe pagina lui')
+              : S.streamState==='BUSY' ? 'receptoarele sunt ocupate acum' : 'receptoarele nu răspund acum';
+    return {t:'DESCHIDE RECEPTORUL WEB', d:`Canalul nu se poate reda direct în radio (${why}). Se deschide receptorul într-un tab nou, deja acordat${S.feed?' pe '+S.feed.f+' kHz':''}.`};
+  },
+};
 const DEF=[
-  ['PWR','','pwr',power],
-  ['MON','SQL OPEN','mon',()=>{ if(!S.power) return; S.mon=!S.mon; update(); syncBtns(); }],
-  ['LIGHT','',null,()=>{ S.light=(S.light+2)%3; update(); }],
-  ['◀','','arrow',()=>step(-1)],
-  ['SCAN','','scan',scan],
-  ['▶','','arrow',()=>step(1)],
-  ['CH/VFO','MODE',null,mode],
-  ['TS','STEP',null,()=>{ if(blocked()) return; S.step=S.step===25?5:S.step===5?1:25; if(!S.chMode) flash('STEP '+S.step+' KHZ'); update(); }],
-  ['LOCK','','lock',()=>{ if(!S.power) return; S.lock=!S.lock; flash(S.lock?'KEYS LOCKED':'UNLOCKED'); syncBtns(); }],
+  ['PWR','','pwr',power,HLP.PWR],
+  ['MON','SQL OPEN','mon',()=>{ if(!S.power) return; S.mon=!S.mon; update(); syncBtns(); },HLP.MON],
+  ['LIGHT','',null,()=>{ S.light=(S.light+2)%3; update(); },HLP.LIGHT],
+  ['◀','','arrow',()=>step(-1),HLP.ARROW],
+  ['SCAN','','scan',scan,HLP.SCAN],
+  ['▶','','arrow',()=>step(1),HLP.ARROW],
+  ['CH/VFO','MODE',null,mode,HLP.MODE],
+  ['STEP','25 · 5 · 1 kHz',null,()=>{ if(blocked()) return; S.step=S.step===25?5:S.step===5?1:25; if(!S.chMode) flash('STEP '+S.step+' KHZ'); update(); },HLP.STEP],
+  ['LOCK','','lock',()=>{ if(!S.power) return; S.lock=!S.lock; flash(S.lock?'KEYS LOCKED':'UNLOCKED'); syncBtns(); },HLP.LOCK],
 ];
 const pad=$('pad'), btnEls={};
-DEF.forEach(([label,sub,key,fn])=>{
+DEF.forEach(([label,sub,key,fn,help])=>{
   const b=document.createElement('button');
   b.className='btn'+(key==='pwr'?' pwr':'')+(key==='arrow'?' arrow':'');
   b.innerHTML=label+(sub?`<small>${sub}</small>`:'');
   b.setAttribute('aria-label',label==='◀'?'Înapoi':label==='▶'?'Înainte':label);
+  HELP.attach(b, help, {touch: key!=='arrow'});      // săgețile folosesc deja apăsarea lungă pentru derulare
   pad.appendChild(b);
   if(key && key!=='arrow' && key!=='pwr') btnEls[key]=b;
   if(key==='pwr') btnEls.pwr=b;
@@ -405,6 +464,7 @@ DEF.forEach(([label,sub,key,fn])=>{
 });
 function syncBtns(){
   btnEls.pwr.classList.toggle('on',S.power);
+  btnEls.pwr.classList.toggle('idle',!S.power);       // pulsează până îl pornești
   btnEls.mon.classList.toggle('on',S.mon);
   btnEls.scan.classList.toggle('on',!!S.scan);
   btnEls.lock.classList.toggle('on',S.lock);
@@ -434,6 +494,7 @@ function knob(el, get, set, label){
 }
 knob($('volKnob'),()=>S.vol,v=>S.vol=v,'VOL');
 knob($('sqlKnob'),()=>S.sql,v=>S.sql=v,'SQL');
+HELP.attach($('volKnob'), HLP.VOL); HELP.attach($('sqlKnob'), HLP.SQL); HELP.attach(sdrBtn, HLP.WEB);
 
 /* ---------- swipe pe display ---------- */
 let sx=null, sy=null;
