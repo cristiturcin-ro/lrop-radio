@@ -377,9 +377,12 @@ function step(d){
   if(S.scan) stopScan();
   if(S.chMode){ S.ch=(S.ch+d+CH.length)%CH.length; S.freq=CH[S.ch].f; }
   else{
-    let f=Math.round(S.freq/S.step)*S.step;
-    if(f!==S.freq && Math.sign(d)===Math.sign(f-S.freq)) d-=Math.sign(d);
-    const b=curBand(); f+=d*S.step; if(f<b.lo) f=b.hi; if(f>b.hi) f=b.lo;
+    // un pas; se oprește singur pe orice canal aflat între poziția curentă și pasul următor
+    const from=S.freq, st=S.step;
+    let f = d>0 ? (Math.floor(from/st)+1)*st : (Math.ceil(from/st)-1)*st;
+    const hit = FEEDS.filter(c => d>0 ? (c.f>from && c.f<f) : (c.f<from && c.f>f)).sort((a,b)=>d*(a.f-b.f))[0];
+    if(hit) f = hit.f;
+    const b=curBand(); if(f<b.lo) f=b.hi; if(f>b.hi) f=b.lo;
     S.freq=f;
   }
   save(); update();

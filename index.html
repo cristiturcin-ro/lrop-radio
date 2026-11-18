@@ -77,6 +77,8 @@ button{font-family:inherit}
 .btn.tab.on{color:#ffb04a;background:linear-gradient(180deg,#1f2023,#131416);box-shadow:inset 0 2px 5px rgba(0,0,0,.75),0 0 0 1px #0a0a0b}
 .btn.tab.on::after{left:35%;right:35%;top:auto;bottom:3px;width:auto;height:2px;border-radius:1px}
 .btn.chbtn.on{color:#ffb04a}
+.grp-lbl{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:3px;color:#cfcfcf;cursor:help}
+.grp-lbl::before,.grp-lbl::after{content:"";flex:1;height:1px;background:#4a4c51}
 .btn.power.idle{animation:pwrGlow 1.8s ease-in-out infinite}
 .hint b{color:#ff9a1f;font-weight:700}
 @keyframes pwrGlow{50%{box-shadow:0 0 0 2px #ff9a1f,0 0 18px 4px rgba(255,140,30,.5)}}
@@ -169,23 +171,14 @@ button{font-family:inherit}
   <div class="abs lcd" id="lcd">
     <span class="ind box" id="i-vfo" style="left:14px;top:9px">VFO</span>
     <span class="ind box" id="i-mem" style="left:44px;top:9px">MEMO</span>
-    <span class="ind" id="i-am" style="left:96px;top:9px">AM</span>
-    <span class="ind" id="i-fm" style="left:116px;top:9px">FM</span>
-    <span class="ind" id="i-usb" style="left:134px;top:9px">USB</span>
+    <span class="ind on" id="i-am" style="left:96px;top:9px">AM</span>
     <span class="ind box" id="i-scan" style="left:170px;top:9px">SCAN</span>
     <span class="ind" id="i-live" style="left:212px;top:9px">LIVE</span>
     <span class="ind box" id="i-rx" style="left:322px;top:9px">RX</span>
     <div class="freq" id="freq"></div>
     <div class="mch" id="mch"></div>
     <span class="ind box" id="i-lock" style="left:14px;top:102px">LOCK</span>
-    <span class="ind" id="i-pamp" style="left:50px;top:104px">P.AMP</span>
-    <span class="ind" id="i-att" style="left:82px;top:104px">ATT</span>
-    <span class="ind" id="i-nb" style="left:104px;top:104px">NB</span>
-    <span class="ind" id="i-nr" style="left:122px;top:104px">NR</span>
-    <span class="ind" id="i-anf" style="left:140px;top:104px">ANF</span>
-    <span class="ind" id="i-agc" style="left:164px;top:104px">AGC-F</span>
-    <span class="ind" id="i-fil" style="left:200px;top:104px">FIL2</span>
-    <span class="ind on" id="i-ts" style="left:226px;top:104px">TS 25k</span>
+    <span class="ind on" id="i-ts" style="left:56px;top:104px">STEP 25k</span>
     <div class="smeter">
       <div class="scale" id="scale"></div>
       <div class="bars" id="bars"></div>
@@ -259,9 +252,9 @@ const S = {
   lock:false, scan:null, entry:null, err:0, textMode:0, span:3,
   streamState:'OFF', level:0, ch:null
 };
-if(!Array.isArray(S.mem)) S.mem = [...CHANNELS.map(c=>({f:c.f,n:c.name})), {f:121500,n:'GUARD'}];
-// canale noi din channels.js → adăugate și în memoriile deja salvate
-CHANNELS.forEach(c=>{ if(!S.mem.some(m=>m.f===c.f) && S.mem.length<99) S.mem.push({f:c.f,n:c.name}); });
+// memoriile = canalele din channels.js + GUARD + ce ai salvat tu cu SAVE (MEM n)
+{ const own = (Array.isArray(S.mem) ? S.mem : []).filter(m => /^MEM \d+$/.test(m.n) && !CHANNELS.some(c=>c.f===m.f));
+  S.mem = [...CHANNELS.map(c=>({f:c.f,n:c.name})), {f:CONFIG.guard||121500, n:'GUARD'}, ...own].slice(0,99); }
 if(bandIdx(S.freq)<0) S.freq = CHANNELS[0].f;
 S.band = bandIdx(S.freq); S.mode = BANDS[S.band].mode; S.step = BANDS[S.band].step;
 
@@ -417,12 +410,10 @@ function update(){
   $('power').classList.toggle('idle', !S.power);      // pulsează până îl pornești
   renderGroups();
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
-  ind('i-vfo',S.vfo); ind('i-mem',!S.vfo); ind('i-am',S.mode==='AM'); ind('i-fm',S.mode==='FM'); ind('i-usb',S.mode==='USB');
+  ind('i-vfo',S.vfo); ind('i-mem',!S.vfo);
   ind('i-scan',S.scan); ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
-  ind('i-lock',S.lock); ind('i-pamp',S.pamp); ind('i-att',S.att); ind('i-nb',S.nb); ind('i-nr',S.nr); ind('i-anf',S.anf);
-  ind('i-agc',S.agc!=='OFF'); $('i-agc').textContent = S.agc==='OFF'?'AGC':'AGC-'+S.agc;
-  $('i-fil').textContent='FIL'+S.fil; ind('i-fil',true);
-  $('i-ts').textContent='TS '+S.step+'k';
+  ind('i-lock',S.lock);
+  $('i-ts').textContent='STEP '+S.step+'k';
   const hs = SPANS[S.span]/2;
   $('i-spanv').textContent = '±' + (hs>=1000 ? (hs/1000)+'M' : hs+'k');
 
@@ -542,10 +533,15 @@ function tune(steps){
   if(!S.power || S.lock) return;
   if(S.scan) stopScan();
   if(S.vfo){
-    const st=S.step;
-    const f = Math.round(S.freq/st)*st;
-    if(f!==S.freq && Math.sign(steps)===Math.sign(f-S.freq)) steps -= Math.sign(steps);
-    S.freq = clampF(f + steps*st);
+    const st=S.step, dir=Math.sign(steps);
+    for(let k=0;k<Math.abs(steps);k++){
+      const from=S.freq;
+      let f = dir>0 ? (Math.floor(from/st)+1)*st : (Math.ceil(from/st)-1)*st;
+      // dialul se oprește singur pe orice canal aflat între poziția curentă și următorul pas
+      const hit = CHANNELS.filter(c => dir>0 ? (c.f>from && c.f<f) : (c.f<from && c.f>f)).sort((a,b)=>dir*(a.f-b.f))[0];
+      if(hit) f = hit.f;
+      S.freq = clampF(f);
+    }
   } else {
     S.mch = (S.mch + steps + S.mem.length*100) % S.mem.length;
     S.freq = S.mem[S.mch].f;
@@ -558,7 +554,6 @@ function power(){
   else { stopScan(); S.entry=null; }
   update();
 }
-function setMode(m){ if(!S.power) return; S.mode=m; update(); }
 function keyIn(ch){
   if(!S.power) return;
   if(S.scan) stopScan();
@@ -622,21 +617,11 @@ const TIP = {
   dim:   {t:'LUMINOZITATE', d:'Cât de tare luminează afișajul.'},
   clock: {t:'CEAS', d:'Arată pe afișaj ora UTC (ora folosită în aviație) și ora locală. Apasă din nou ca să revii la numele canalului.'},
   lock:  {t:'BLOCARE', d:'Blochează dialul și tastele, ca să nu schimbi frecvența din greșeală.'},
-  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența: trage în cerc sau folosește rotița mouse-ului. În modul MEM trece prin canalele salvate.', k:'Taste: [↑] [↓]'},
-  AM:    {t:'MOD AM', d:'Modul aviației civile pe VHF (118–137 MHz). Se alege singur când ești pe un canal VHF.'},
-  FM:    {t:'MOD FM', d:'Nu se folosește în aviație – pe FM semnalele de aici nu se aud corect.'},
-  USB:   {t:'MOD USB', d:'Bandă laterală superioară, folosită pe unde scurte (HF): VOLMET, Shanwick. Se alege singur pe HF.'},
+  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența: trage în cerc sau folosește rotița mouse-ului. Se oprește singur pe fiecare canal. În modul MEM trece prin canalele salvate.', k:'Taste: [↑] [↓]'},
   STEP:  ()=>({t:'PAS DE ACORD', d:`Cât sare frecvența la fiecare pas al dialului: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
-  FILTER:{t:'FILTRU', d:'Lățimea filtrului (FIL1 lat … FIL3 îngust). Larg = prinzi semnalul și dacă nu ești fix pe frecvență; îngust = mai puțin zgomot.'},
-  AGC:   {t:'AGC', d:'Control automat al amplificării: cât de repede reacționează S-metrul (F = rapid, S = lent, OFF = oprit).'},
   SPAN:  {t:'LĂȚIME SPECTRU', d:'Cât din bandă vezi în graficul de pe afișaj. Merge și cu rotița mouse-ului pe grafic.'},
   INFO:  {t:'INFO AFIȘAJ', d:'Schimbă ultimul rând de pe afișaj: numele canalului → ceas → sursa audio și starea conexiunii.'},
-  pamp:  {t:'PREAMPLIFICATOR', d:'Amplifică semnalele slabe – dar și zgomotul.'},
-  att:   {t:'ATENUATOR', d:'Reduce semnalele prea puternice și zgomotul.'},
-  nr:    {t:'REDUCERE ZGOMOT', d:'Atenuează fâșâitul de fond.'},
-  anf:   {t:'FILTRU NOTCH AUTOMAT', d:'Scoate tonurile și fluierăturile constante.'},
-  nb:    {t:'NOISE BLANKER', d:'Taie paraziții scurți, de tip pocnitură.'},
-  key:   {t:'TASTATURĂ', d:'Scrie direct o frecvență, apoi ENT. VHF în MHz: 1 1 9 . 1 → 119.100. Unde scurte în kHz: 5 5 0 5 → 5505.', k:'Merge și de la tastatură: cifre + [Enter]'},
+  key:   {t:'TASTATURĂ', d:'Scrie direct o frecvență în MHz, apoi ENT: 1 2 1 . 1 → 121.100 (Dublin).', k:'Merge și de la tastatură: cifre + [Enter]'},
   ENT:   {t:'ENTER', d:'Confirmă frecvența tastată.', k:'[Enter]'},
   VM:    {t:'VFO / MEMORIE', d:'VFO = acord liber pe orice frecvență. MEM = treci doar prin canalele salvate, cu ▲ ▼ sau dialul.'},
   SAVE:  {t:'SALVEAZĂ', d:'Salvează frecvența curentă ca un canal nou în memorie (le găsești în modul MEM).'},
@@ -644,8 +629,8 @@ const TIP = {
   DOWN:  {t:'ÎN JOS', d:'Un pas de frecvență în jos (în modul MEM: canalul anterior).', k:'[↓]'},
   UP:    {t:'ÎN SUS', d:'Un pas de frecvență în sus (în modul MEM: canalul următor).', k:'[↑]'},
   SCAN:  {t:'SCANARE', d:'Caută singur următorul canal cu semnal și se oprește pe el. În modul MEM ascultă pe rând fiecare canal salvat. Apasă din nou pentru stop.'},
-  freq:  {t:'FRECVENȚA', d:'VHF (aviație civilă) în MHz, ex. 119.100. Unde scurte (HF) în kHz: 5.505 = 5505 kHz.'},
-  smeter:{t:'S-METRU', d:'Puterea semnalului recepționat. Pe canalele HF arată nivelul real măsurat de receptorul web.'},
+  freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz (banda aviației civile, 108–137 MHz).'},
+  smeter:{t:'S-METRU', d:'Puterea semnalului recepționat.'},
   scope: {t:'SPECTRU', d:'Vârfurile sunt canale cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
   text:  {t:'NUME / STARE', d:'Numele canalului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
   live:  {t:'LIVE', d:'Sursa audio (LiveATC sau receptorul web) e conectată.'},
@@ -671,26 +656,11 @@ function mkBtn(parent, {x,y,w,h,label,cls='',fn,title,help}){
   parent.appendChild(b); return b;
 }
 const modes=$('modes');
-const modeDefs=[
-  ['AM',()=>setMode('AM')],['FM',()=>setMode('FM')],['USB',()=>setMode('USB')],
+[
   ['STEP',()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }],
-  ['FILTER',()=>{ S.fil = S.fil===2?1:S.fil===1?3:2; update(); }],
-  ['AGC',()=>{ S.agc = S.agc==='F'?'S':S.agc==='S'?'OFF':'F'; update(); }],
   ['SPAN',()=>{ S.span=(S.span+1)%SPANS.length; update(); }],
   ['INFO',()=>{ S.textMode=(S.textMode+1)%3; update(); }],
-];
-modeDefs.forEach(([n,fn],i)=>{
-  const col = i<6 ? i%3 : (i-6), x=620+col*38;
-  const y = i<3 ? 80 : i<6 ? 150 : 226;
-  const l=document.createElement('div'); l.className='mode-lbl'; l.textContent=n; l.style.left=(x-4)+'px'; l.style.top=(y-16)+'px'; modes.appendChild(l);
-  HELP.attach(l, TIP[n]);
-  mkBtn(modes,{x,y,label:'',cls:'mode-btn',fn,title:n,help:TIP[n]});
-});
-
-const bottom=$('bottom');
-[['P.AMP','pamp'],['ATT','att'],['NR','nr'],['ANF','anf'],['NB','nb']].forEach(([n,k],i)=>{
-  const b=mkBtn(bottom,{x:244+i*60,y:398,label:n,cls:'small',help:TIP[k],fn:()=>{ if(!S.power) return; S[k]=!S[k]; b.classList.toggle('on',S[k]); update(); }});
-});
+].forEach(([n,fn],i)=>mkBtn(modes,{x:620,y:78+i*66,w:96,h:36,label:`<span style="font-size:14px;letter-spacing:1px">${n}</span>`,fn,title:n,help:TIP[n]}));
 
 const keys=$('keys');
 ['1','2','3','4','5','6','7','8','9','.','0','ENT'].forEach((k,i)=>{
@@ -709,9 +679,14 @@ const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*
 const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
 S.grp = grpOf(nearest()); S.autoGrp = null;
 const tabW = (230 - (GROUPS.length-1)*10) / GROUPS.length;
-const tabEls = GROUPS.map((g,i)=>mkBtn(keys,{x:746+i*(tabW+10),y:348,w:tabW,h:22,cls:'tab',
+const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{x:746+i*(tabW+10),y:348,w:tabW,h:22,cls:'tab',
   label:`<span style="font-size:11px;letter-spacing:1px">${g.name}</span>`, title:g.name,
   help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
+if(GROUPS.length<2){                     // o singură listă → doar un titlu, nu un buton
+  const l=document.createElement('div'); l.className='lbl grp-lbl'; l.textContent=GROUPS[0].name;
+  Object.assign(l.style,{left:'746px',top:'350px',width:'230px'}); keys.appendChild(l);
+  HELP.attach(l, {t:GROUPS[0].name, d:GROUPS[0].info});
+}
 const chEls = CHANNELS.map(c=>{
   const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
   const lbl = c.btn || c.mount.toUpperCase();
@@ -723,7 +698,7 @@ function renderGroups(){
   // tab-ul urmează canalul acordat (dar poți răsfoi alt tab fără să schimbi frecvența)
   const cg = S.ch ? grpOf(S.ch) : null;
   if(cg && cg!==S.autoGrp){ S.autoGrp = cg; S.grp = cg; }
-  GROUPS.forEach((g,i)=>tabEls[i].classList.toggle('on', g.id===S.grp));
+  tabEls.forEach((t,i)=>t.classList.toggle('on', GROUPS[i].id===S.grp));
   CHANNELS.forEach((c,i)=>{ chEls[i].style.display = grpOf(c)===S.grp ? '' : 'none'; chEls[i].classList.toggle('on', S.power && S.ch===c); });
 }
 
