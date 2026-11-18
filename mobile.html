@@ -257,7 +257,7 @@ function connect(c){
     return;
   }
   token++; audio.dataset.token=token; S.streamState='CONNECT';
-  audio.src = CFG.streamBase + c.mount + '?t=' + Date.now();
+  audio.src = c.url ? c.url : CFG.streamBase + c.mount + '?t=' + Date.now();   // LiveATC sau stream direct
   audio.muted = true;
   const t=token;
   audio.play().catch(()=>{ if(t===token){ S.streamState='NO LINK'; update(); } });
@@ -312,7 +312,7 @@ function applyAudio(){
 function setMediaSession(c){
   if(!('mediaSession' in navigator)) return;
   try{
-    navigator.mediaSession.metadata = new MediaMetadata({title:c.name, artist:(c.f/1000).toFixed(3)+' MHz', album:(isSdr(c)?'KiwiSDR · ':'LiveATC · ')+CFG.brand});
+    navigator.mediaSession.metadata = new MediaMetadata({title:c.name, artist:(c.f/1000).toFixed(3)+' MHz', album:(isSdr(c)?'KiwiSDR · ':c.url?(c.source||'Stream')+' · ':'LiveATC · ')+CFG.brand});
     navigator.mediaSession.setActionHandler('nexttrack', ()=>step(1));
     navigator.mediaSession.setActionHandler('previoustrack', ()=>step(-1));
   }catch(e){}
@@ -343,7 +343,7 @@ function update(){
   const fb = S.power && sdrFallback();
   if(S.flash) st=S.flash;
   else if(fb) st = S.streamState==='WEB ONLY' ? 'BROWSER ONLY' : S.streamState;
-  else if(S.feed) st = S.streamState==='LIVE' ? (isSdr(S.feed) ? 'KIWI '+(sdr.rx?sdr.rx.name:'') : 'LIVEATC '+S.feed.mount.toUpperCase()) : S.streamState+'...';
+  else if(S.feed) st = S.streamState==='LIVE' ? (isSdr(S.feed) ? 'KIWI '+(sdr.rx?sdr.rx.name:'') : S.feed.url ? (S.feed.source||'STREAM').toUpperCase() : 'LIVEATC '+S.feed.mount.toUpperCase()) : S.streamState+'...';
   else st = S.mon ? 'MONITOR' : 'NO SIGNAL';
   $('status').textContent=st;
   sdrBtn.classList.toggle('show', fb && !S.flash);
