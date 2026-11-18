@@ -219,6 +219,7 @@ button{font-family:inherit}
 <script src="channels.js"></script>
 <script src="sdr.js"></script>
 <script src="help.js"></script>
+<script src="keepalive.js"></script>
 <script>
 (() => {
 /* Configurarea (nume, canale, frecvențe) e în channels.js – comună cu versiunea de mobil. */
@@ -312,6 +313,11 @@ const onStream = (state) => () => { if(S.ch && audio.dataset.token==streamToken)
 audio.addEventListener('playing', onStream('LIVE'));
 audio.addEventListener('waiting', onStream('BUFFER'));
 audio.addEventListener('error',   onStream('NO LINK'));
+// non-stop: repornește singur stream-ul dacă pică / se blochează (vezi keepalive.js)
+const keeper = KEEPALIVE.watch(audio, { active: () => S.power && !!S.ch && !isSdr(S.ch), reconnect: () => { if(S.ch) connect(S.ch); } });
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState==='visible' && S.power && ctx && ctx.state==='suspended') ctx.resume();
+});
 
 let connectT=null;
 // LiveATC: streamBase + mount; alte surse: url complet (stream direct MP3 / Icecast)
@@ -353,7 +359,7 @@ function retune(){
   const c = nearest();
   const want = Math.abs(c.f - S.freq) <= filterW() ? c : null;
   if(want === S.ch) return;
-  disconnect(); S.ch = want;
+  disconnect(); S.ch = want; keeper.reset();
   if(want){ S.streamState='CONNECT'; connectT = setTimeout(()=>connect(want), 350); }
 }
 
@@ -410,6 +416,7 @@ function update(){
   lcd.style.filter = `brightness(${.55+.45*S.dim})`;
   $('led').classList.toggle('on', S.power);
   $('power').classList.toggle('idle', !S.power);      // pulsează până îl pornești
+  KEEPALIVE.wake(S.power);                            // cât timp e pornit: ecranul nu se stinge
   renderGroups();
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
   ind('i-vfo',S.vfo); ind('i-mem',!S.vfo); $('i-am').textContent = S.mode;
@@ -613,7 +620,7 @@ function stopScan(){ if(S.scan){ clearInterval(S.scan); S.scan=null; save(); upd
 /* ---------------- texte de ajutor (popup la hover / apăsare lungă) ---------------- */
 const fmtF = f => f>=100000 ? (f/1000).toFixed(3)+' MHz' : f+' kHz';
 const TIP = {
-  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Sfat: un clic pe un canal din dreapta îl pornește automat.'},
+  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Cât timp e pornit, ecranul nu se stinge și stream-ul se reconectează singur dacă pică. Sfat: un clic pe un canal din dreapta îl pornește automat.'},
   af:    {t:'VOLUM (AF)', d:'Butonul mic din mijloc. Trage în sus/jos sau folosește rotița mouse-ului.'},
   sql:   {t:'SQUELCH (SQL)', d:'Inelul mare din jur. Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
   dim:   {t:'LUMINOZITATE', d:'Cât de tare luminează afișajul.'},
