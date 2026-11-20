@@ -15,189 +15,183 @@ try{
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
 <style>
+/* Design B2: front negru, un singur accent – chihlimbar (afișaj VFD, LED-uri, ac, cifre) */
 :root{
-  --bg:#1b1d20;
-  --case-1:#2b2d31; --case-2:#16171a; --case-edge:#3a3c41;
-  --btn-1:#3c3e43; --btn-2:#232428; --btn-text:#e8e8e8;
-  --label:#d9d9d9; --accent:#ff8a2a;
-  --lcd-on-1:#ffb347; --lcd-on-2:#ff8f1f; --lcd-off:#3b2f22;
-  --seg-on:#1c1006; --seg-ghost:rgba(60,25,0,.09);
+  --vfd:#ffb347;                 /* afișajul VFD */
+  --amber:#ff9a1f;               /* LED-uri, zona roșie a S-metrului */
+  --num:#e8a24a;                 /* cifrele tipărite deasupra tastelor MEMORY */
+  --ink:#ececec; --sub:#c9c9c9;  /* serigrafia albă de pe panou */
+  --tab:#2a2b2f;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{
-  background:radial-gradient(ellipse at 50% 30%,#2a2c30 0%,var(--bg) 70%);
+  background:radial-gradient(ellipse at 50% 30%,#26282b 0%,#111214 70%);
   display:flex;align-items:center;justify-content:center;
-  font-family:"Barlow Condensed",Arial Narrow,sans-serif;color:var(--label);
+  font-family:"Barlow Condensed",Arial Narrow,sans-serif;color:var(--ink);
   overflow-x:hidden;user-select:none;-webkit-user-select:none;
   min-height:100vh;padding:16px;
 }
 #fit{position:relative}
-#stage{position:absolute;left:0;top:0;width:1000px;height:520px;transform-origin:0 0}
-
-/* ---------- case ---------- */
-.case{position:absolute;left:0;top:0;width:1000px;height:488px;border-radius:14px;
-  background:linear-gradient(180deg,var(--case-1) 0%,#212226 40%,var(--case-2) 100%);
-  box-shadow:0 2px 0 var(--case-edge) inset,0 -2px 0 #0c0c0e inset,0 25px 40px rgba(0,0,0,.6),0 0 0 2px #0e0f11;}
-.case::before{content:"";position:absolute;inset:8px;border-radius:10px;border:1px solid rgba(255,255,255,.04)}
-.foot{position:absolute;top:484px;width:70px;height:28px;border-radius:0 0 10px 10px;
-  background:linear-gradient(180deg,#141416,#050506)}
+#stage{position:absolute;left:0;top:0;width:1040px;height:450px;transform-origin:0 0}
 .abs{position:absolute}
 
-.logo{left:28px;top:16px;font:italic 700 26px/1 "Barlow Condensed";color:#f2f2f2;letter-spacing:1px}
-.logo small{font-size:12px;letter-spacing:2px;color:#aaa;font-style:normal;margin-left:4px}
-.model{left:124px;top:17px;padding:2px 10px;border:1px solid #777;border-radius:3px;
-  font:700 18px/1.1 "Barlow Condensed";letter-spacing:2px;color:#f2f2f2}
-.title-bar{left:232px;top:12px;width:382px;height:26px;border-radius:4px;
-  background:linear-gradient(180deg,#26272b,#1a1b1e);box-shadow:0 1px 0 #3b3d42 inset,0 0 0 1px #0d0d0f;
-  text-align:center;font:600 13px/26px "Barlow Condensed";letter-spacing:3px;color:#e6e6e6}
+/* ---------- carcasa ---------- */
+.case{position:absolute;left:0;top:0;width:1040px;height:400px;border-radius:8px;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,rgba(0,0,0,0) 1px 3px),
+             linear-gradient(180deg,#202124 0%,#161719 55%,#0e0f10 100%);
+  box-shadow:0 2px 0 #34363a inset,0 -2px 0 #050506 inset,0 25px 40px rgba(0,0,0,.65),0 0 0 2px #08090a}
+.foot{position:absolute;top:396px;width:70px;height:24px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#141416,#050506)}
+.lbl{position:absolute;font:600 11px/1 "Barlow Condensed";letter-spacing:1.5px;color:var(--ink);white-space:nowrap}
+.tab{position:absolute;height:16px;background:var(--tab);border-radius:2px;font:700 10px/16px "Barlow Condensed";
+  letter-spacing:2px;color:var(--ink);text-align:center;cursor:help}
+.badge{display:flex;align-items:center;gap:8px}
+.badge .brand{padding:2px 6px;border:1px solid var(--ink);border-radius:2px;font:700 12px/1 "Barlow Condensed";letter-spacing:2px}
+.badge .model{font:700 16px/1 "Barlow Condensed";letter-spacing:1px}
+.subtitle{left:24px;top:100px;width:140px;font:600 9px/1.35 "Barlow Condensed";letter-spacing:2px;color:var(--sub);white-space:normal}
 
-.speaker{left:24px;top:48px;width:190px;height:166px;border-radius:8px;
-  background:repeating-linear-gradient(180deg,#0b0b0d 0 7px,#2e3034 7px 9px,#1a1b1e 9px 13px);
-  box-shadow:0 0 0 2px #0c0c0e,0 2px 0 2px #34363b}
-
-/* ---------- buttons ---------- */
+/* ---------- taste ---------- */
 button{font-family:inherit}
-.btn{position:absolute;border:none;border-radius:5px;cursor:pointer;color:var(--btn-text);
-  background:linear-gradient(180deg,var(--btn-1),var(--btn-2));
-  box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 -2px 0 rgba(0,0,0,.5) inset,0 2px 3px rgba(0,0,0,.7),0 0 0 1px #0a0a0b;
-  font-weight:600;font-size:14px;letter-spacing:.5px;transition:transform .05s,filter .1s;padding:0}
-.btn:hover{filter:brightness(1.15)}
-.btn:active,.btn.pressed{transform:translateY(1px);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 0 2px rgba(0,0,0,.8),0 0 0 1px #0a0a0b}
-.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn.on::after{content:"";position:absolute;right:5px;top:5px;width:5px;height:5px;border-radius:50%;
-  background:#ffb04a;box-shadow:0 0 6px #ff9a1f}
-.btn.big{height:46px;font-size:16px;letter-spacing:2px}
-.btn.fn{font-size:13px;letter-spacing:1px}
-/* buton activ (MUTE, CLOCK, LOCK): literele se aprind în portocaliu */
-.btn.lit{color:#ffb04a;text-shadow:0 0 6px rgba(255,150,40,.55)}
-/* dreapta, ca la receptoarele de unde scurte: chenare serigrafiate, taste mici, numele tipărit deasupra + LED */
-.pbox{position:absolute;margin:0;padding:0;border:1px solid #4a4c51;border-radius:6px;pointer-events:none}
-.pbox legend{margin:0 auto;padding:0 8px;font:600 11px/1 "Barlow Condensed";letter-spacing:3px;color:#cfcfcf}
-.slot{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;
-  background:none;border:none;cursor:pointer;color:#d9d9d9}
-.slot:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
-.slbl{display:flex;align-items:center;gap:5px;font:600 11px/1 "Barlow Condensed";letter-spacing:1.2px;white-space:nowrap}
-.sled{width:6px;height:6px;border-radius:50%;background:#2a1a0a;box-shadow:0 0 0 1px #000;transition:.15s}
-.slot.on .sled{background:#ff9a1f;box-shadow:0 0 0 1px #000,0 0 7px #ff8a10}
-.skey{display:flex;align-items:center;justify-content:center;width:62px;height:24px;border-radius:3px;
-  font:600 12px/1 "Barlow Condensed";color:#cfcfcf;background:linear-gradient(180deg,#36383d,#202125);
-  box-shadow:0 1px 0 rgba(255,255,255,.14) inset,0 -2px 0 rgba(0,0,0,.45) inset,0 2px 3px rgba(0,0,0,.7),0 0 0 1px #0a0a0b;
-  transition:transform .05s,filter .1s}
-.slot:hover .skey{filter:brightness(1.18)}
-.slot:active .skey{transform:translateY(1px);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 0 2px rgba(0,0,0,.8),0 0 0 1px #0a0a0b}
+.btn{position:absolute;border:none;border-radius:4px;cursor:pointer;padding:0;color:#e8e8e8;white-space:nowrap;
+  background:linear-gradient(180deg,#2a2b2f,#141517);
+  box-shadow:0 1px 0 rgba(255,255,255,.16) inset,0 -2px 0 rgba(0,0,0,.5) inset,0 2px 3px rgba(0,0,0,.7),0 0 0 1px #0a0a0b;
+  font:600 12px/1 "Barlow Condensed";letter-spacing:1px;transition:transform .05s,filter .1s}
+.btn:hover{filter:brightness(1.18)}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 0 2px rgba(0,0,0,.8),0 0 0 1px #0a0a0b}
+.btn:focus-visible,.toggle:focus-visible,.knob:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.btn.amber{background:linear-gradient(180deg,#ffb04a,#d9781a);color:#1c1006}
+.btn.lit,.btn.on{color:var(--vfd);text-shadow:0 0 6px rgba(255,150,40,.45)}
+.btn .led{position:absolute;right:5px;top:5px;width:5px;height:5px;border-radius:50%;background:#2a1a0a;transition:.15s}
+.btn.on .led{background:var(--amber);box-shadow:0 0 6px var(--amber)}
 .btn.power.idle{animation:pwrGlow 1.8s ease-in-out infinite}
-.hint b{color:#ff9a1f;font-weight:700}
-@keyframes pwrGlow{50%{box-shadow:0 0 0 2px #ff9a1f,0 0 18px 4px rgba(255,140,30,.5)}}
-.lbl{position:absolute;font:600 13px/1 "Barlow Condensed";letter-spacing:1px;color:#e6e6e6;text-align:center}
+@keyframes pwrGlow{50%{box-shadow:0 0 0 2px var(--amber),0 0 16px 4px rgba(255,140,30,.45)}}
+.bandkey{font-size:9.5px;letter-spacing:.3px}
+.memkey{font-size:11px;letter-spacing:.6px}
+.mnum{font:700 10px/1 "Barlow Condensed";letter-spacing:0;color:var(--num)}
 
-.klbl{font-size:12px;letter-spacing:2px;color:#d9d9d9}
+/* comutatoare cu levier (MUTE, LOCK) */
+.toggle{position:absolute;width:50px;height:92px;border:none;background:none;padding:0;cursor:pointer;color:var(--ink)}
+.toggle span{position:absolute;left:0;width:50px;text-align:center;font:600 10px/1 "Barlow Condensed";letter-spacing:1.5px}
+.toggle .ton,.toggle .toff{font-size:8px;letter-spacing:1px;color:var(--sub)}
+.toggle .ton{top:16px} .toggle .toff{top:80px}
+.toggle .slot{left:18px;top:28px;width:14px;height:48px;border-radius:3px;background:#050506;
+  box-shadow:0 1px 0 #2a2b2f,0 1px 3px rgba(0,0,0,.8) inset}
+.toggle .lever{left:1px;top:28px;width:12px;height:14px;border-radius:2px;transition:top .12s;
+  background:linear-gradient(180deg,#3d3f44,#16171a);box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 1px 2px rgba(0,0,0,.8),0 0 0 1px #000}
+.toggle.on .lever{top:6px}
+.toggle.on .ton{color:var(--vfd)}
 
-/* ---------- display ---------- */
-.bezel{left:232px;top:48px;width:382px;height:252px;border-radius:8px;
-  background:linear-gradient(180deg,#0f1012,#1c1d20);box-shadow:0 0 0 2px #050506,0 2px 0 2px #2f3135}
-.lcd{left:242px;top:58px;width:362px;height:232px;border-radius:4px;overflow:hidden;
-  background:var(--lcd-off);box-shadow:0 0 0 3px #0a0a0a inset,0 6px 14px rgba(0,0,0,.6) inset;
-  transition:background .35s,filter .2s;color:var(--seg-on)}
-.lcd.on{background:radial-gradient(ellipse at 50% 40%,var(--lcd-on-1),var(--lcd-on-2) 85%)}
-.lcd > *{transition:opacity .3s}
-.lcd:not(.on) > *{opacity:0!important}
-.lcd .glass{position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,0) 40%);pointer-events:none;opacity:1!important}
-.ind{position:absolute;font:700 11px/1 "Barlow Condensed";letter-spacing:.5px;color:var(--seg-on);opacity:.08;transition:opacity .15s}
-.ind.on{opacity:1}
-.ind.box{padding:1px 3px;border-radius:2px}
-.ind.box.on{background:var(--seg-on);color:var(--lcd-on-1)}
-.freq{position:absolute;left:14px;top:30px;height:66px;display:flex;align-items:flex-end}
-.freq svg{display:block;transform:skewX(-7deg)}
-.seg{fill:var(--seg-ghost)}
-.seg.on{fill:var(--seg-on)}
+/* ---------- afișajul VFD ---------- */
+.window{left:176px;top:14px;width:650px;height:124px;border-radius:4px;background:#040506;overflow:hidden;
+  box-shadow:0 0 0 2px #1b1c1e,0 0 0 4px #3a3c40,0 8px 16px rgba(0,0,0,.7) inset;transition:filter .2s;color:var(--vfd)}
+.window > *{transition:opacity .3s}
+.window:not(.on) > *:not(.meter):not(.meter-lbl){opacity:0!important}
+.window:not(.on) .meter{opacity:.35}
+.meter{position:absolute;left:10px;top:10px;width:160px;height:84px;border-radius:3px;
+  background:radial-gradient(ellipse at 50% 30%,#1d1f21,#0b0c0d 80%);box-shadow:0 0 0 1px #2a2c2f;cursor:help}
+.meter svg{display:block}
+.meter text{font-family:"Barlow Condensed",Arial Narrow,sans-serif}
+.meter-lbl{position:absolute;left:10px;top:100px;width:160px;text-align:center;font:600 8px/1 "Barlow Condensed";letter-spacing:2px;color:#9a9ca1}
+.ann{position:absolute;font:600 10px/1 "Barlow Condensed";letter-spacing:1px;opacity:.14;transition:opacity .15s;cursor:help}
+.ann.on{opacity:1;text-shadow:0 0 4px var(--vfd)}
+.anns{position:absolute;left:188px;top:106px;display:flex;gap:14px}
+.anns .ann{position:static;font-size:9px}
+.freq{position:absolute;left:186px;top:28px;display:flex;align-items:flex-end;gap:4px;filter:drop-shadow(0 0 3px var(--vfd));cursor:help}
+.freq svg,.clk svg{display:block;transform:skewX(-7deg)}
+.mhz{font:600 11px/1 "Barlow Condensed";margin-left:2px;margin-bottom:2px}
+.seg{fill:var(--vfd);fill-opacity:.07}
+.seg.on{fill-opacity:1}
 .blink{animation:blink .9s steps(1) infinite}
 @keyframes blink{50%{opacity:.15}}
-.smeter{position:absolute;left:14px;top:124px;width:250px}
-.scale{position:relative;height:12px;font:700 10px/1 "Barlow Condensed"}
-.scale span{position:absolute;transform:translateX(-50%)}
-.bars{display:flex;gap:2px;align-items:flex-end;height:14px}
-.bars i{flex:1;height:100%;background:var(--seg-ghost)}
-.bars i.on{background:var(--seg-on)}
-.scope{position:absolute;left:12px;top:156px;width:338px;height:46px;cursor:crosshair;
-  border-top:1px solid rgba(28,16,6,.35);border-bottom:1px solid rgba(28,16,6,.35)}
-.scope-lbl{position:absolute;top:157px;font:700 9px/1 "Barlow Condensed";opacity:.75!important}
-.textline{position:absolute;left:14px;bottom:5px;font:22px/1 "VT323",monospace;letter-spacing:1px;white-space:pre}
-.sdr-open{position:absolute;right:10px;bottom:5px;display:none;border:none;border-radius:2px;cursor:pointer;padding:3px 6px;
-  background:var(--seg-on);color:var(--lcd-on-1);font:700 12px/1 "Barlow Condensed";letter-spacing:1px}
+.name{position:absolute;right:12px;top:8px;max-width:300px;overflow:hidden;text-overflow:ellipsis;
+  font:20px/1 "VT323",monospace;letter-spacing:1px;text-align:right;white-space:pre;text-shadow:0 0 4px var(--vfd);cursor:help}
+.clk{position:absolute;right:12px;top:34px;display:flex;align-items:flex-end;gap:5px;filter:drop-shadow(0 0 2px var(--vfd))}
+.clk .clab{font:600 10px/1 "Barlow Condensed";letter-spacing:1px;margin-right:2px}
+.clk .colon{font:700 18px/20px "Barlow Condensed"}
+.clk .off{opacity:.12}
+.lcl{position:absolute;right:12px;top:66px;font:16px/1 "VT323",monospace;text-align:right;white-space:pre;text-shadow:0 0 3px var(--vfd)}
+.scope{position:absolute;left:188px;top:84px;width:316px;height:16px;cursor:crosshair}
+.sdr-open{position:absolute;right:10px;bottom:6px;display:none;border:none;border-radius:2px;cursor:pointer;padding:3px 6px;
+  background:var(--vfd);color:#1c1006;font:700 11px/1 "Barlow Condensed";letter-spacing:1px}
 .sdr-open.show{display:block}
-.sdr-open:hover{filter:brightness(1.6)}
 
-/* ---------- knobs ---------- */
-.ticks i{position:absolute;width:4px;height:4px;border-radius:50%;background:#cfcfcf;margin:-2px 0 0 -2px}
-.knob{position:absolute;border-radius:50%;cursor:ns-resize;touch-action:none}
-.knob.outer{background:repeating-conic-gradient(#2c2d31 0 4deg,#141517 4deg 8deg);
-  box-shadow:0 4px 8px rgba(0,0,0,.8),0 0 0 2px #0a0a0b}
+/* ---------- butoane rotative ---------- */
+.ticks i{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--ink);margin:-2px 0 0 -2px}
+.knum{position:absolute;width:16px;margin:-5px 0 0 -8px;text-align:center;font:600 9px/1 "Barlow Condensed";color:var(--ink)}
+.knob{position:absolute;border-radius:50%;cursor:ns-resize;touch-action:none;
+  background:repeating-conic-gradient(#2c2d31 0 4deg,#141517 4deg 8deg);box-shadow:0 4px 8px rgba(0,0,0,.8),0 0 0 2px #0a0a0b}
 .knob .cap{position:absolute;inset:17%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#45474c,#18191c 70%);
   box-shadow:0 3px 6px rgba(0,0,0,.8),0 0 0 2px #0a0a0b}
 .knob .mark{position:absolute;left:50%;top:4px;width:3px;height:32%;margin-left:-1.5px;background:#ddd;border-radius:2px}
-.knob > .mark{top:2px;height:9px;background:#ff9a1f}
-.knob:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.knob > .mark{top:2px;height:9px;background:var(--amber)}
 
-.dial{left:243px;top:315px;width:150px;height:150px;border-radius:50%;cursor:grab;touch-action:none;
+/* dialul mare, negru, direct pe panou */
+.dial{left:374px;top:171px;width:186px;height:186px;border-radius:50%;cursor:grab;touch-action:none;
   background:repeating-conic-gradient(#232428 0 3deg,#0d0e10 3deg 6deg);
   box-shadow:0 8px 18px rgba(0,0,0,.85),0 0 0 3px #08080a,0 0 0 5px #2a2b2f}
 .dial:active{cursor:grabbing}
-.dial-face{position:absolute;inset:14px;border-radius:50%;
-  background:radial-gradient(circle at 42% 35%,#2e3034,#0f1012 75%);box-shadow:0 0 0 2px #050506,0 -2px 4px rgba(255,255,255,.06) inset}
-.dimple{position:absolute;left:50%;top:16px;width:36px;height:36px;margin-left:-18px;border-radius:50%;
-  background:radial-gradient(circle at 55% 60%,#2b2d31,#060607 70%);box-shadow:0 1px 1px rgba(255,255,255,.08)}
+.dial-face{position:absolute;inset:17px;border-radius:50%;
+  background:radial-gradient(circle at 42% 35%,#2e3034,#0f1012 75%);box-shadow:0 0 0 2px rgba(0,0,0,.6),0 -2px 4px rgba(255,255,255,.06) inset}
+.dimple{position:absolute;left:50%;top:22px;width:45px;height:45px;margin-left:-22.5px;border-radius:50%;
+  background:radial-gradient(circle at 55% 60%,#2b2d31,#060607 70%);box-shadow:0 1px 1px rgba(255,255,255,.1)}
 
-.hint{position:absolute;left:0;top:526px;width:1000px;text-align:center;font:500 13px/1.4 "Barlow Condensed";color:#8a8c91;letter-spacing:.5px}
+.hint{position:absolute;left:0;top:430px;width:1040px;text-align:center;font:500 13px/1.4 "Barlow Condensed";color:#8a8c91;letter-spacing:.5px}
+.hint b{color:var(--amber);font-weight:700}
 #stream{display:none}
 </style>
 </head>
 <body>
 <div id="fit"><div id="stage">
-  <div class="foot" style="left:60px"></div><div class="foot" style="left:870px"></div>
+  <div class="foot" style="left:70px"></div><div class="foot" style="left:900px"></div>
   <div class="case"></div>
 
-  <div class="abs logo" id="logo"></div>
-  <div class="abs model" id="model"></div>
-  <div class="abs title-bar" id="subtitle"></div>
-  <div class="abs speaker"></div>
+  <!-- stânga sus: pornire și marca -->
+  <button class="btn power" id="power" style="left:24px;top:22px;width:92px;height:30px">POWER<span class="led"></span></button>
+  <div class="lbl" style="left:122px;top:22px;font-size:9px;letter-spacing:1px">▬ ON</div>
+  <div class="lbl" style="left:122px;top:40px;font-size:9px;letter-spacing:1px">▬ OFF</div>
+  <div class="abs badge" style="left:24px;top:78px"><span class="brand" id="brand"></span><span class="model" id="model"></span></div>
+  <div class="lbl subtitle" id="subtitle"></div>
 
-  <!-- stânga: sunetul – pornire, mut, volum, squelch -->
-  <button class="btn big power" id="power" style="left:24px;top:230px;width:88px">POWER</button>
-  <button class="btn big" id="mute" style="left:126px;top:230px;width:88px">MUTE</button>
-  <div class="lbl klbl" style="left:16px;top:316px;width:104px">VOLUME</div>
-  <div class="lbl klbl" style="left:126px;top:316px;width:96px">SQUELCH</div>
-  <div id="knobs"></div>
-
-  <!-- mijloc: afișajul, sub el dialul și butoanele folosite mai rar -->
-  <div class="abs bezel"></div>
-  <div class="abs lcd" id="lcd">
-    <span class="ind on" id="i-am" style="left:14px;top:9px">AM</span>
-    <span class="ind" id="i-live" style="left:40px;top:9px">LIVE</span>
-    <span class="ind box" id="i-rx" style="left:70px;top:9px">RX</span>
-    <span class="ind box" id="i-mute" style="left:262px;top:9px">MUTE</span>
-    <span class="ind box" id="i-lock" style="left:308px;top:9px">LOCK</span>
+  <!-- afișajul: S-metru analogic + VFD -->
+  <div class="abs window" id="lcd">
+    <div class="meter" id="meter"></div>
+    <div class="meter-lbl">S-METER</div>
+    <span class="ann on" id="a-am" style="left:188px;top:10px">AM</span>
+    <span class="ann" id="a-live" style="left:212px;top:10px">LIVE</span>
     <div class="freq" id="freq"></div>
-    <span class="ind on" id="i-ts" style="left:14px;top:104px">STEP 25k</span>
-    <div class="smeter">
-      <div class="scale" id="scale"></div>
-      <div class="bars" id="bars"></div>
-    </div>
-    <span class="ind on" id="i-span" style="left:276px;top:130px">SPAN</span>
-    <span class="ind on" id="i-spanv" style="left:276px;top:142px">±250k</span>
+    <div class="name" id="name"></div>
+    <div class="clk" id="clk"></div>
+    <div class="lcl" id="lcl"></div>
     <canvas class="scope" id="scope"></canvas>
-    <div class="textline" id="text"></div>
-    <div class="glass"></div>
+    <div class="anns">
+      <span class="ann" id="a-rx">RX</span><span class="ann" id="a-mute">MUTE</span><span class="ann" id="a-lock">LOCK</span>
+      <span class="ann on" id="a-step">STEP 25k</span><span class="ann on" id="a-span">SPAN ±1.25M</span><span class="ann" id="a-clock">CLOCK</span>
+    </div>
     <button class="sdr-open" id="sdrOpen">▶ WEB SDR</button>
   </div>
 
-  <div class="dial abs" id="dial"><div class="dial-face" id="dialFace"><div class="dimple"></div></div></div>
-  <div id="fns"></div>
+  <!-- dreapta sus: squelch -->
+  <div class="lbl" style="left:880px;top:14px;width:100px;text-align:center;letter-spacing:2px">SQUELCH</div>
 
-  <!-- dreapta: domeniile și canalele -->
+  <!-- jos stânga: domenii și memorii -->
+  <div class="tab" id="bandTab" style="left:24px;top:150px;width:302px">BAND</div>
+  <div class="tab" id="memTab" style="left:24px;top:214px;width:302px">MEMORY</div>
   <div id="keys"></div>
 
-  <div class="hint"><b>①</b> alege un canal din dreapta (radioul pornește singur) &nbsp;<b>②</b> VOLUME și MUTE în stânga &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
+  <!-- mijloc: dialul -->
+  <div class="dial abs" id="dial"><div class="dial-face" id="dialFace"><div class="dimple"></div></div></div>
+
+  <!-- funcții + comutatoare -->
+  <div class="tab" style="left:606px;top:150px;width:140px">FUNCTION</div>
+  <div id="fns"></div>
+  <button class="toggle" id="tMute" style="left:611px;top:300px" aria-label="MUTE"><span style="top:0">MUTE</span><span class="ton">ON</span><span class="slot"><span class="lever"></span></span><span class="toff">OFF</span></button>
+  <button class="toggle" id="tLock" style="left:685px;top:300px" aria-label="LOCK"><span style="top:0">LOCK</span><span class="ton">ON</span><span class="slot"><span class="lever"></span></span><span class="toff">OFF</span></button>
+
+  <!-- dreapta: volum -->
+  <div class="lbl" style="left:880px;top:176px;width:100px;text-align:center;font-size:12px;letter-spacing:2px">VOLUME</div>
+  <div id="knobs"></div>
+
+  <div class="hint"><b>①</b> alege un post din MEMORY (radioul pornește singur) &nbsp;<b>②</b> VOLUME și MUTE în dreapta &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
@@ -220,7 +214,7 @@ const isSdr = c => !!(c && c.rx);
 
 const $ = id => document.getElementById(id);
 const stage = $('stage'), lcd = $('lcd'), audio = $('stream');
-$('logo').innerHTML = `${CONFIG.brand}<small>${CONFIG.brandSub}</small>`;
+$('brand').textContent = CONFIG.brand;
 $('model').textContent = CONFIG.model;
 $('subtitle').textContent = CONFIG.subtitle;
 
@@ -235,7 +229,9 @@ const S = {
   power:false, freq:store.get('freq', CHANNELS[0].f), step:25, mode:'AM',
   af:store.get('af', .6), sql:store.get('sql', .15), dim:store.get('dim', 1), mute:false,
   pamp:false, att:false, nb:false, nr:false, anf:false, agc:'F', fil:2,
-  lock:false, entry:null, err:0, textMode:0, span:3,
+  lock:false, entry:null, err:0, span:3,
+  clock:store.get('clock', true),       // zona de ceas de pe afișaj (CLOCK)
+  info:false,                           // INFO: pe rândul cu numele, sursa și starea conexiunii
   streamState:'OFF', level:0, ch:null
 };
 // dacă frecvența salvată nu mai e pe niciun canal (ex. un canal scos), pornește pe primul canal
@@ -267,14 +263,35 @@ function renderDigits(str, h){
   return out;
 }
 
-/* ---------------- S-meter scale ---------------- */
-const NBARS=22;
+/* ---------------- S-metru analogic ---------------- */
+const NBARS = 22;                          // scara internă: S1 = 0 … S9 = 12 … +60 dB = 21.3
+const MCX = 80, MCY = 134, MR = 100;
+const mpt = (a, r) => [MCX + r*Math.sin(a*Math.PI/180), MCY - r*Math.cos(a*Math.PI/180)];
 (() => {
-  const lab=[['S1',0],['3',3],['5',6],['7',9],['9',12],['+20',15.5],['+40',18.5],['+60dB',21.3]];
-  $('scale').innerHTML = lab.map(([t,i])=>`<span style="left:${(i+.5)/NBARS*100}%">${t}</span>`).join('');
-  $('bars').innerHTML = Array.from({length:NBARS},(_,i)=>`<i style="height:${i<13?55:100}%"></i>`).join('');
+  const f = n => n.toFixed(1), WHITE = '#e8e8e8', AMB = 'var(--amber)';
+  const [x0,y0]=mpt(-40,MR), [x1,y1]=mpt(6,MR), [x2,y2]=mpt(40,MR);
+  let o = '<svg viewBox="0 0 160 84" width="160" height="84" aria-hidden="true">';
+  o += `<path d="M${f(x0)},${f(y0)} A${MR},${MR} 0 0 1 ${f(x1)},${f(y1)}" fill="none" stroke="${WHITE}" stroke-width="1.4"/>`;
+  o += `<path d="M${f(x1)},${f(y1)} A${MR},${MR} 0 0 1 ${f(x2)},${f(y2)}" fill="none" style="stroke:${AMB}" stroke-width="3"/>`;
+  for(let i=0;i<24;i++){
+    const a=-40+i*80/23, major=i%3===0, [ax,ay]=mpt(a,MR), [bx,by]=mpt(a,MR+(major?7:4));
+    o += `<line x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}" style="stroke:${a>6?AMB:WHITE}" stroke-width="${major?1.4:1}"/>`;
+  }
+  [['1',-38],['3',-27],['5',-16],['7',-5],['9',6],['+20',18],['+40',29],['+60',39]].forEach(([t,a])=>{
+    const [x,y]=mpt(a,MR-11);
+    o += `<text x="${f(x)}" y="${f(y+3)}" font-size="9" font-weight="700" style="fill:${t[0]==='+'?AMB:WHITE}" text-anchor="middle">${t}</text>`;
+  });
+  o += `<text x="14" y="30" font-size="11" font-weight="700" fill="${WHITE}">S</text>`;
+  o += `<text x="80" y="74" font-size="8" font-weight="600" letter-spacing="2" fill="${WHITE}" text-anchor="middle">SIGNAL</text>`;
+  o += `<line id="needle" x1="${MCX}" y1="${MCY}" x2="${MCX}" y2="${MCY-MR-9}" style="stroke:var(--vfd)" stroke-width="1.6" transform="rotate(-42 ${MCX} ${MCY})"/>`;
+  $('meter').innerHTML = o + '</svg>';
 })();
-const barEls=[...$('bars').children];
+const needle = $('needle');
+// nivel 0..1 → unghiul acului (aceeași scară ca vechiul S-metru cu bare)
+function needleAngle(lvl){
+  const i = Math.max(0, Math.min(1, lvl)) * NBARS;
+  return i <= 12 ? -38 + i*44/12 : 6 + (i-12)*33/9.3;
+}
 
 /* ---------------- audio ---------------- */
 let ctx=null, noiseGain=null;
@@ -407,8 +424,21 @@ function fmtFreq(k){
   return [String(mhz).padStart(3,' ')+'.'+String(khz).padStart(3,'0'), '00'];
 }
 const pad2 = n => String(n).padStart(2,'0');
+function renderClock(){
+  const el = $('clk');
+  if(!S.clock){
+    el.innerHTML = `<span class="clab off">${HOME_TAG}</span>${renderDigits('  ',26)}<span class="colon off">:</span>${renderDigits('  ',26)}`;
+    $('lcl').textContent = ''; return;
+  }
+  const d = new Date(), h = tzParts(HOME_TZ, d);
+  el.innerHTML = `<span class="clab">${HOME_TAG}</span>${renderDigits(h.hour,26)}<span class="colon${(+h.second)%2?' off':''}">:</span>${renderDigits(h.minute,26)}`;
+  let l = '';
+  const tz = S.ch && S.ch.tz;
+  if(tz){ try{ const p = tzParts(tz, d); l = 'LCL '+p.hour+':'+p.minute+' '+fmtDiff(p.off - h.off); }catch(e){} }
+  $('lcl').textContent = l;
+}
 function update(){
-  // la schimbarea benzii: mod + pas automat (HF = USB / 1 kHz, VHF = AM / 25 kHz)
+  // la schimbarea benzii: mod + pas automat
   const bi = bandIdx(S.freq);
   if(bi>=0 && bi!==S.band){ S.band = bi; S.mode = BANDS[bi].mode; S.step = BANDS[bi].step; }
   retune();
@@ -417,66 +447,68 @@ function update(){
   lcd.style.filter = `brightness(${.55+.45*S.dim})`;
   $('power').classList.toggle('on', S.power);
   $('power').classList.toggle('idle', !S.power);      // pulsează până îl pornești
-  $('mute').classList.toggle('lit', S.mute); $('mute').textContent = S.mute ? 'MUTED' : 'MUTE';
-  if(fnEls.CLOCK){ fnEls.CLOCK.classList.toggle('lit', S.textMode===1); fnEls.LOCK.classList.toggle('lit', S.lock); }
   KEEPALIVE.wake(S.power);                            // cât timp e pornit: ecranul nu se stinge
+  $('tMute').classList.toggle('on', S.mute); $('tMute').setAttribute('aria-pressed', S.mute);
+  $('tLock').classList.toggle('on', S.lock); $('tLock').setAttribute('aria-pressed', S.lock);
+  if(fnEls.INFO) fnEls.INFO.classList.toggle('lit', S.info);
   renderGroups();
-  const ind=(id,on)=>$(id).classList.toggle('on',!!on);
-  $('i-am').textContent = S.mode;
-  ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
-  ind('i-lock',S.lock); ind('i-mute',S.mute);
-  $('i-ts').textContent='STEP '+S.step+'k';
+  const ann = (id,on) => $(id).classList.toggle('on', !!on);
+  $('a-am').textContent = S.mode;
+  ann('a-live', L.live && S.ch); ann('a-rx', L.open && L.sig>0 && L.live);
+  ann('a-mute', S.mute); ann('a-lock', S.lock); ann('a-clock', S.clock);
+  $('a-step').textContent = 'STEP '+S.step+'k';
   const hs = SPANS[S.span]/2;
-  $('i-spanv').textContent = '±' + (hs>=1000 ? (hs/1000)+'M' : hs+'k');
+  $('a-span').textContent = 'SPAN ±' + (hs>=1000 ? (hs/1000)+'M' : hs+'k');
 
   const fe = $('freq');
-  if(S.err){ fe.innerHTML = renderDigits('  Err  ',62); }
+  if(S.err){ fe.innerHTML = renderDigits('  Err  ',50); }
   else if(S.entry!==null){
     const e = S.entry;
     const shown = e.includes('.') ? e : (e.length>3 ? e.slice(0,3)+'.'+e.slice(3) : e);
     let [a,b=''] = shown.split('.');
     a = a.padStart(3,' ').slice(-3); b=(b+'___').slice(0,3);
-    fe.innerHTML = `<div class="blink" style="display:flex;align-items:flex-end">${renderDigits(a+'.'+b,62)}</div>`;
+    fe.innerHTML = `<div class="blink" style="display:flex;align-items:flex-end">${renderDigits(a+'.'+b,50)}</div>`;
   } else {
     const [main, sub] = fmtFreq(S.freq);
-    fe.innerHTML = renderDigits(main,62) + `<div style="margin-left:4px;display:flex">${renderDigits(sub,30)}</div>`;
+    fe.innerHTML = renderDigits(main,50) + renderDigits(sub,24) + '<span class="mhz">MHz</span>';
   }
 
   let t;
-  const near = Math.abs((CONFIG.guard||121500) - S.freq)<=2 ? 'GUARD' : null;
+  const guard = Math.abs((CONFIG.guard||121500) - S.freq)<=2 ? 'GUARD' : null;
   const fb = S.power && sdrFallback();
   if(S.err) t = 'OUT OF BAND';
-  else if(S.entry!==null) t = 'ENTER MHz  ·  ENT';
-  else if(S.textMode===1) t = clockText();
-  else if(S.textMode===2) t = S.ch ? (chTag(S.ch)+': '+S.streamState) : 'NO FEED HERE';
+  else if(S.entry!==null) t = 'ENTER MHz · ENT';
+  else if(S.info) t = S.ch ? (chTag(S.ch)+': '+S.streamState) : 'NO FEED HERE';
   else {
-    t = (S.ch && S.ch.name) || near || 'NO CHANNEL';
-    if(S.ch && S.streamState!=='LIVE' && !fb) t += '  ['+S.streamState+']';
+    t = (S.ch && S.ch.name) || guard || 'NO CHANNEL';
+    if(S.ch && S.streamState!=='LIVE' && !fb) t += ' ['+S.streamState+']';
   }
-  $('text').textContent = t;
+  $('name').textContent = t;
+  renderClock();
   $('sdrOpen').classList.toggle('show', fb && S.err===0 && S.entry===null);
   S.lastL = L;
 }
 
-/* ---------------- bandscope ---------------- */
+/* ---------------- spectru (puncte, ca un VFD cu matrice) ---------------- */
 const scope = $('scope'), sctx = scope.getContext('2d');
+const SW = 316, SH = 16, SCOLS = 105;
 function sizeScope(){
   const dpr = Math.min(3, (window.devicePixelRatio||1) * (stage._scale||1));
-  scope.width = Math.round(338*dpr); scope.height = Math.round(46*dpr);
+  scope.width = Math.round(SW*dpr); scope.height = Math.round(SH*dpr);
   sctx.setTransform(dpr,0,0,dpr,0,0);
 }
-const floor = new Float32Array(170).map(()=>Math.random());
+const floor = new Float32Array(SCOLS+1).map(()=>Math.random());
 function drawScope(){
-  const W=338, Hh=46, cols=169, colW=W/cols;
-  sctx.clearRect(0,0,W,Hh);
+  const colW = SW/SCOLS, rows = Math.floor(SH/3);
+  sctx.clearRect(0,0,SW,SH);
   if(!S.power) return;
-  const ink = getComputedStyle(document.documentElement).getPropertyValue('--seg-on').trim() || '#1c1006';
+  const ink = getComputedStyle(document.documentElement).getPropertyValue('--vfd').trim() || '#ffb347';
   const span = SPANS[S.span], lo = S.freq - span/2;
-  const bw = Math.max(1.5, span/cols*1.2);
-  const noise = .05 + (S.pamp?.04:0) - (S.att?.02:0);
-  for(let i=0;i<cols;i++){
+  const bw = Math.max(1.5, span/SCOLS*1.2);
+  const noise = .06 + (S.pamp?.04:0) - (S.att?.02:0);
+  for(let i=0;i<SCOLS;i++){
     floor[i] = floor[i]*.6 + Math.random()*.4;
-    const f = lo + (i+.5)*span/cols;
+    const f = lo + (i+.5)*span/SCOLS;
     let a = noise*(.4+floor[i]);
     for(const c of CHANNELS){
       const d = Math.abs(f-c.f);
@@ -486,17 +518,15 @@ function drawScope(){
         a = Math.max(a, strength*Math.exp(-(d*d)/(2*bw*bw*1.2)) * (S.att?.75:1));
       }
     }
-    const h = Math.min(1,a)*(Hh-6);
-    // ghost column
-    sctx.fillStyle = 'rgba(60,25,0,.07)'; sctx.fillRect(i*colW, 3, colW-.6, Hh-6);
-    sctx.fillStyle = ink; sctx.fillRect(i*colW, Hh-3-h, colW-.6, h);
+    const lit = Math.round(Math.min(1,a)*rows);
+    for(let r=0;r<rows;r++){
+      sctx.globalAlpha = r < lit ? 1 : .08;
+      sctx.fillStyle = ink; sctx.fillRect(i*colW, SH-3-r*3+1, colW-.8, 2);
+    }
   }
-  // centre marker + filter passband
-  const pw = filterW()*2/span*W;
-  sctx.fillStyle = 'rgba(28,16,6,.18)'; sctx.fillRect(W/2-pw/2, 0, pw, Hh);
-  sctx.fillStyle = ink;
-  for(let y=0;y<Hh;y+=4) sctx.fillRect(W/2-.5, y, 1, 2);
-  sctx.beginPath(); sctx.moveTo(W/2-4,0); sctx.lineTo(W/2+4,0); sctx.lineTo(W/2,5); sctx.fill();
+  // marcajul central (frecvența acordată)
+  sctx.globalAlpha = 1; sctx.fillStyle = ink;
+  for(let y=0;y<SH;y+=3) sctx.fillRect(SW/2-.5, y, 1, 1.6);
 }
 scope.addEventListener('click', e=>{
   if(!S.power || S.lock) return;
@@ -509,30 +539,28 @@ scope.addEventListener('click', e=>{
   S.freq = clampF(f); save(); update();
 });
 scope.addEventListener('wheel', e=>{ e.preventDefault(); S.span = Math.max(0,Math.min(SPANS.length-1, S.span + (e.deltaY>0?1:-1))); update(); },{passive:false});
-$('i-span').style.cursor='pointer';
 
 /* ---------------- animation ---------------- */
 let last=0;
 function tick(ts){
   requestAnimationFrame(tick);
   if(ts-last<60) return; last=ts;
-  if(!S.power){ S.level=0; barEls.forEach(b=>b.classList.remove('on')); drawScope(); return; }
+  if(!S.power){ S.level=0; needle.setAttribute('transform', `rotate(-42 ${MCX} ${MCY})`); drawScope(); return; }
   let L = S.lastL || levels();
   if(isSdr(S.ch) && S.streamState==='LIVE'){        // nivel real de la receptor → S-metru + squelch live
     L = S.lastL = applyAudio();
-    $('i-rx').classList.toggle('on', L.open && L.sig>0 && L.live);
+    $('a-rx').classList.toggle('on', L.open && L.sig>0 && L.live);
   }
   let target = L.sLvl;
   if(L.sig>0 && L.live) target += (Math.random()-.5)*.14;
   else target = Math.random()*target*1.3;
   const k = S.agc==='F'?.55:S.agc==='S'?.15:1;
   S.level += (target-S.level)*k;
-  const lit = Math.round(Math.max(0,Math.min(1,S.level))*NBARS);
-  barEls.forEach((b,i)=>b.classList.toggle('on',i<lit));
+  needle.setAttribute('transform', `rotate(${needleAngle(S.level).toFixed(1)} ${MCX} ${MCY})`);
   drawScope();
 }
 requestAnimationFrame(tick);
-setInterval(()=>{ if(S.power && S.textMode===1) update(); },1000);
+setInterval(()=>{ if(S.power && S.clock) renderClock(); },1000);
 
 /* ---------------- actions ---------------- */
 function save(){ store.set('freq',S.freq); store.set('af',S.af); store.set('sql',S.sql); store.set('dim',S.dim); }
@@ -580,30 +608,31 @@ function clr(){ S.entry=null; S.err=0; update(); }
 /* ---------------- texte de ajutor (popup la hover / apăsare lungă) ---------------- */
 const fmtF = f => f>=100000 ? (f/1000).toFixed(3)+' MHz' : f+' kHz';
 const TIP = {
-  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Cât timp e pornit, ecranul nu se stinge și stream-ul se reconectează singur dacă pică. Sfat: un clic pe un canal din dreapta îl pornește automat.'},
+  power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Cât timp e pornit, ecranul nu se stinge și stream-ul se reconectează singur dacă pică. Sfat: un clic pe un post din MEMORY îl pornește automat.'},
   af:    {t:'VOLUM', d:'Trage butonul în sus/jos sau folosește rotița mouse-ului. Dacă sunetul e pe MUTE, rotirea îl readuce.', k:'Taste: clic pe buton, apoi [↑] [↓]'},
-  sql:   {t:'SQUELCH', d:'Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
-  mute:  {t:'MUT', d:'Oprește sunetul dintr-o apăsare, fără să pierzi canalul sau volumul. Apasă din nou (sau rotește VOLUME) ca să revină.', k:'Tasta [M]'},
+  sql:   {t:'SQUELCH', d:'Taie fâșâitul când nu vorbește nimeni: la 0 auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
+  mute:  {t:'MUT', d:'Comutator: sus (ON) = fără sunet, fără să pierzi postul sau volumul. Jos (OFF) = sunetul revine. Și rotirea butonului VOLUME readuce sunetul.', k:'Tasta [M]'},
+  lock:  {t:'BLOCARE', d:'Comutator: sus (ON) = dialul și tastele de post sunt blocate, ca să nu schimbi frecvența din greșeală.'},
+  clock: {t:'CEAS', d:'Arată sau ascunde ceasul de pe afișaj: ora Bucureștiului (BUC) cu cifre mari și, dedesubt, ora locală (LCL) a locului pe care îl asculți, cu diferența față de București: +6h = acolo e cu 6 ore mai târziu, -8h = cu 8 ore mai devreme.'},
   dim:   {t:'LUMINĂ AFIȘAJ', d:'Cât de tare luminează afișajul: 100% → 70% → 40%.'},
-  clock: {t:'CEAS', d:'Arată ora Bucureștiului (BUC) și, în dreapta, ora locală (LCL) a locului pe care îl asculți, cu diferența față de București: +6h = acolo e cu 6 ore mai târziu, -8h = cu 8 ore mai devreme. Apasă din nou ca să revii la numele canalului.'},
-  lock:  {t:'BLOCARE', d:'Blochează dialul și canalele, ca să nu schimbi frecvența din greșeală.'},
-  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența pas cu pas: trage în cerc sau folosește rotița mouse-ului. Se oprește singur pe fiecare canal.', k:'Taste: [↑] [↓]'},
+  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența pas cu pas: trage în cerc sau folosește rotița mouse-ului. Se oprește singur pe fiecare post.', k:'Taste: [↑] [↓]'},
   STEP:  ()=>({t:'PAS DE ACORD', d:`Cât sare frecvența la fiecare pas al dialului: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
-  SPAN:  {t:'LĂȚIME SPECTRU', d:'Cât din bandă vezi în graficul de pe afișaj. Merge și cu rotița mouse-ului pe grafic.'},
-  INFO:  {t:'INFO AFIȘAJ', d:'Schimbă ultimul rând de pe afișaj: numele canalului → ceas → sursa audio și starea conexiunii.'},
+  SPAN:  {t:'LĂȚIME SPECTRU', d:'Cât din bandă vezi în spectrul de pe afișaj. Merge și cu rotița mouse-ului pe spectru.'},
+  INFO:  {t:'INFO', d:'Pe rândul de sus din dreapta arată sursa audio și starea conexiunii (LIVE, CONNECT, NO LINK…) în loc de numele postului. Apasă din nou ca să revii la nume.'},
   freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz: 108–137 = aviație (AM), 137–174 = urgențe, tren, maritim, meteo (FM). Poți scrie o frecvență direct de la tastatura calculatorului, ex. 121.1 + Enter.', k:'[0-9] [.] [Enter] · [Esc] anulează'},
-  smeter:{t:'S-METRU', d:'Puterea semnalului recepționat.'},
-  scope: {t:'SPECTRU', d:'Vârfurile sunt canale cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
-  text:  {t:'NUME / STARE', d:'Numele canalului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
-  live:  {t:'LIVE', d:'Sursa audio (LiveATC sau receptorul web) e conectată.'},
+  smeter:{t:'S-METRU', d:'Acul arată puterea semnalului recepționat. Peste 9 (zona chihlimbar) semnalul e foarte puternic.'},
+  scope: {t:'SPECTRU', d:'Vârfurile sunt posturi cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
+  text:  {t:'NUME / STARE', d:'Numele postului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
+  live:  {t:'LIVE', d:'Sursa audio (LiveATC sau stream-ul direct) e conectată.'},
   rx:    {t:'RX', d:'Se aude un semnal chiar acum (squelch deschis).'},
+  band:  {t:'BAND', d:'Alege domeniul: aviație, urgențe, tren și maritim, meteo, Morse. Tastele MEMORY de dedesubt arată posturile din domeniul ales; LED-ul arată domeniul afișat.'},
   sdrOpen: ()=>{
     const why = S.streamState==='WEB ONLY' ? (SDR.isSecurePage() ? 'site-ul e pe https, iar receptoarele doar pe http' : 'receptorul WebSDR se ascultă doar pe pagina lui')
               : S.streamState==='BUSY' ? 'receptoarele sunt ocupate acum' : 'receptoarele nu răspund acum';
     return {t:'DESCHIDE RECEPTORUL WEB', d:`Canalul nu se poate reda direct în radio (${why}). Se deschide receptorul într-un tab nou, deja acordat pe ${S.ch?fmtF(S.ch.f):''}.`};
   },
 };
-const chHelp = c => () => ({ t:c.name, d:(c.info || '') + (c.nominal ? ' (Frecvența de pe dial e orientativă: feed-ul ascultă mai multe canale.)' : ''),
+const chHelp = c => () => ({ t:c.name, d:(c.info || '') + (c.nominal ? ' (Frecvența de pe afișaj e orientativă: feed-ul ascultă mai multe canale.)' : ''),
   k: `${fmtF(c.f)} · ${c.mode || BANDS[Math.max(0,bandIdx(c.f))].mode} · ${isSdr(c) ? 'receptor web (KiwiSDR / WebSDR)' : c.url ? (c.source||'stream direct') : 'LiveATC'}` });
 
 /* ---------------- build controls ---------------- */
@@ -616,96 +645,82 @@ function mkBtn(parent, {x,y,w,h,label,cls='',fn,title,help}){
   if(help) HELP.attach(b, help);
   parent.appendChild(b); return b;
 }
-/* sub afișaj: butoanele folosite mai rar (2 rânduri × 3) */
+
+/* FUNCTION: CLOCK (tasta chihlimbar), INFO, SPAN, STEP, LIGHT */
 const fns=$('fns'), fnEls={};
 [
-  ['CLOCK',()=>{ S.textMode = S.textMode===1?0:1; update(); }, TIP.clock],
-  ['INFO', ()=>{ S.textMode=(S.textMode+1)%3; update(); }, TIP.INFO],
-  ['LOCK', ()=>{ S.lock=!S.lock; update(); }, TIP.lock],
-  ['SPAN', ()=>{ S.span=(S.span+1)%SPANS.length; update(); }, TIP.SPAN],
-  ['STEP', ()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }, TIP.STEP],
-  ['LIGHT',()=>{ S.dim = S.dim>.9 ? .7 : S.dim>.6 ? .4 : 1; save(); update(); }, TIP.dim],
-].forEach(([n,fn,help],i)=>{ fnEls[n] = mkBtn(fns,{x:414+(i%3)*69,y:343+Math.floor(i/3)*50,w:62,h:40,cls:'fn',label:n,fn,title:n,help}); });
+  ['CLOCK', 606,172, 66,'amber', ()=>{ S.clock=!S.clock; store.set('clock',S.clock); update(); }, TIP.clock],
+  ['INFO',  680,172, 66,'',      ()=>{ S.info=!S.info; update(); }, TIP.INFO],
+  ['SPAN',  606,214, 66,'',      ()=>{ S.span=(S.span+1)%SPANS.length; update(); }, TIP.SPAN],
+  ['STEP',  680,214, 66,'',      ()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }, TIP.STEP],
+  ['LIGHT', 606,256,140,'',      ()=>{ S.dim = S.dim>.9 ? .7 : S.dim>.6 ? .4 : 1; save(); update(); }, TIP.dim],
+].forEach(([n,x,y,w,cls,fn,help])=>{ fnEls[n] = mkBtn(fns,{x,y,w,h:30,cls,label:n,fn,title:n,help}); });
 
+/* BAND (domeniile) și MEMORY (posturile domeniului ales, 3 pe rând, cu numărul tipărit deasupra) */
 const keys=$('keys');
-/* coloana din dreapta, ca la un receptor de unde scurte:
-   sus MEMORY – tastele 1…9 ale domeniului ales, cu numele postului tipărit deasupra și un LED care arată ce asculți;
-   jos BAND – domeniile (aviație, urgențe…), tot taste mici cu LED.
-   (O frecvență oarecare se poate scrie în continuare de la tastatura calculatorului + Enter.) */
 const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*', name:'CANALE', info:''}];
 const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
 S.grp = grpOf(nearest()); S.autoGrp = null;
-const RX = 634, RW = 342, COLS = 3, COLW = (RW-20)/COLS;
-const hasBands = GROUPS.length > 1;
-const MEM = {top:46, bot: hasBands ? 302 : 466}, BAND = {top:322, bot:456};
-function mkBox(top, bot, title){
-  const f=document.createElement('fieldset'); f.className='pbox';
-  Object.assign(f.style,{left:RX+'px',top:top+'px',width:RW+'px',height:(bot-top)+'px'});
-  f.innerHTML=`<legend>${title}</legend>`; keys.appendChild(f); return f.firstChild;
-}
-function mkSlot({x,y,label,key,fn,title,help}){
-  const b=document.createElement('button'); b.className='slot';
-  Object.assign(b.style,{left:x+'px',top:y+'px',width:COLW+'px'});
-  b.innerHTML=`<span class="slbl"><i class="sled"></i>${label}</span><span class="skey">${key}</span>`;
-  b.addEventListener('click',fn); b.setAttribute('aria-label', title||label);
-  if(help) HELP.attach(b, help);
-  keys.appendChild(b); return b;
-}
-const SLOT_H = 47;                                        // 4 + nume 11 + 6 + tastă 24 + 4 – aproximativ
-// pune n taste pe 3 coloane, centrate pe verticală în chenar; ultimul rând incomplet e centrat pe orizontală
-function slotPos(i, n, box, rows){
-  const row=Math.floor(i/COLS), inRow=Math.min(COLS, n-row*COLS), col=i%COLS;
-  const step = Math.min(74, (box.bot-box.top-24)/rows);
-  const y0 = box.top + 16 + ((box.bot-box.top-16) - rows*step)/2 + (step-SLOT_H)/2;
-  return {x: RX + 10 + (COLS-inRow)*COLW/2 + col*COLW, y: y0 + row*step};
-}
-const memLegend = mkBox(MEM.top, MEM.bot, 'MEMORY');
-const memRows = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/COLS)), 1);
-const chEls = CHANNELS.map(c=>{
-  const grp = CHANNELS.filter(x=>grpOf(x)===grpOf(c)), i = grp.indexOf(c);
-  return mkSlot({...slotPos(i, grp.length, MEM, memRows), label:c.btn || c.mount.toUpperCase(), key:i+1,
+const BX = 24, BW = 302;
+const bandEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>{
+  const w = (BW - (GROUPS.length-1)*8) / GROUPS.length;
+  return mkBtn(keys,{x:BX+i*(w+8), y:172, w, h:26, cls:'bandkey', label:`${g.name}<span class="led"></span>`, title:g.name,
+    help:{t:g.name, d:g.info || TIP.band.d}, fn:()=>{ S.grp=g.id; renderGroups(); }});
+});
+if(GROUPS.length<2) $('bandTab').style.display='none';
+HELP.attach($('bandTab'), TIP.band);
+const memEls = CHANNELS.map(c=>{
+  const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);     // cel mult 9 posturi pe domeniu (3 × 3)
+  const x = BX + (i%3)*104, y = 236 + Math.floor(i/3)*46;
+  const num = document.createElement('div'); num.className='lbl mnum';
+  Object.assign(num.style,{left:x+'px', top:y+'px'}); num.textContent = i+1; keys.appendChild(num);
+  const b = mkBtn(keys,{x, y:y+13, w:92, h:28, cls:'memkey', label:`${c.btn || c.mount.toUpperCase()}<span class="led"></span>`,
     title:c.name+' '+fmtF(c.f), help:chHelp(c),
     fn:()=>{ if(S.lock) return; if(!S.power) power(); S.freq=c.f; save(); update(); }});
+  return {b, num};
 });
-let bandEls = [];
-if(hasBands){
-  mkBox(BAND.top, BAND.bot, 'BAND');
-  const bandRows = Math.ceil(GROUPS.length/COLS);
-  bandEls = GROUPS.map((g,i)=>mkSlot({...slotPos(i, GROUPS.length, BAND, bandRows), label:g.name, key:'',
-    title:g.name, help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
-}
 function renderGroups(){
-  // banda urmează canalul acordat (dar poți răsfoi altă bandă fără să schimbi frecvența)
+  // domeniul urmează postul acordat (dar poți răsfoi alt domeniu fără să schimbi frecvența)
   const cg = S.ch ? grpOf(S.ch) : null;
   if(cg && cg!==S.autoGrp){ S.autoGrp = cg; S.grp = cg; }
-  const g = GROUPS.find(g=>g.id===S.grp);
-  memLegend.textContent = hasBands ? 'MEMORY · '+g.name : g.name;
+  const g = GROUPS.find(g=>g.id===S.grp) || GROUPS[0];
+  $('memTab').textContent = GROUPS.length<2 ? g.name : 'MEMORY · '+g.name;
   bandEls.forEach((b,i)=>b.classList.toggle('on', GROUPS[i].id===S.grp));
-  CHANNELS.forEach((c,i)=>{ chEls[i].style.display = grpOf(c)===S.grp ? '' : 'none'; chEls[i].classList.toggle('on', S.power && S.ch===c); });
+  CHANNELS.forEach((c,i)=>{
+    const show = grpOf(c)===S.grp;
+    memEls[i].b.style.display = memEls[i].num.style.display = show ? '' : 'none';
+    memEls[i].b.classList.toggle('on', S.power && S.ch===c);
+  });
 }
 
 $('power').addEventListener('click',power);
-$('mute').addEventListener('click',toggleMute);
-HELP.attach($('power'), TIP.power); HELP.attach($('mute'), TIP.mute); HELP.attach($('i-mute'), TIP.mute);
-HELP.attach($('freq'), TIP.freq); HELP.attach(document.querySelector('.smeter'), TIP.smeter);
-HELP.attach($('scope'), TIP.scope); HELP.attach($('text'), TIP.text); HELP.attach($('sdrOpen'), TIP.sdrOpen);
-HELP.attach($('i-live'), TIP.live); HELP.attach($('i-rx'), TIP.rx);
+$('tMute').addEventListener('click',toggleMute);
+$('tLock').addEventListener('click',()=>{ S.lock=!S.lock; update(); });
+HELP.attach($('power'), TIP.power); HELP.attach($('tMute'), TIP.mute); HELP.attach($('tLock'), TIP.lock);
+HELP.attach($('a-mute'), TIP.mute); HELP.attach($('a-lock'), TIP.lock); HELP.attach($('a-clock'), TIP.clock);
+HELP.attach($('freq'), TIP.freq); HELP.attach($('meter'), TIP.smeter);
+HELP.attach($('scope'), TIP.scope); HELP.attach($('name'), TIP.text); HELP.attach($('sdrOpen'), TIP.sdrOpen);
+HELP.attach($('a-live'), TIP.live); HELP.attach($('a-rx'), TIP.rx);
 
-/* knobs: VOLUME (mare) și SQUELCH, separate */
+/* butoane rotative negre, cu scară 0–10 tipărită în jur */
 function makeKnob({cx,cy,r,get,set,title,help}){
   const host=$('knobs');
   const ticks=document.createElement('div'); ticks.className='ticks';
   for(let i=0;i<11;i++){
-    const a=(-135+i*27)*Math.PI/180, R=r+9;
-    const d=document.createElement('i'); d.style.left=(cx+Math.sin(a)*R)+'px'; d.style.top=(cy-Math.cos(a)*R)+'px'; ticks.appendChild(d);
+    const a=(-135+i*27)*Math.PI/180;
+    const d=document.createElement('i'); d.style.left=(cx+Math.sin(a)*(r+9))+'px'; d.style.top=(cy-Math.cos(a)*(r+9))+'px'; ticks.appendChild(d);
+    if(i%2===0){
+      const n=document.createElement('div'); n.className='knum'; n.textContent=i;
+      n.style.left=(cx+Math.sin(a)*(r+20))+'px'; n.style.top=(cy-Math.cos(a)*(r+20))+'px'; ticks.appendChild(n);
+    }
   }
   host.appendChild(ticks);
-  const k=document.createElement('div'); k.className='knob outer'; k.setAttribute('aria-label',title);
+  const k=document.createElement('div'); k.className='knob'; k.setAttribute('aria-label',title);
   k.setAttribute('role','slider'); k.tabIndex=0;
   if(help) HELP.attach(k, help);
   Object.assign(k.style,{left:(cx-r)+'px',top:(cy-r)+'px',width:r*2+'px',height:r*2+'px'});
   k.innerHTML='<div class="mark"></div><div class="cap"><div class="mark"></div></div>';
-  const draw=()=>k.style.transform=`rotate(${-135+get()*270}deg)`;
+  const draw=()=>{ k.style.transform=`rotate(${-135+get()*270}deg)`; k.setAttribute('aria-valuenow', Math.round(get()*10)); };
   const setV=v=>{ set(Math.max(0,Math.min(1,v))); draw(); update(); save(); };
   let y0=null,v0=0;
   k.addEventListener('pointerdown',e=>{e.stopPropagation();k.setPointerCapture(e.pointerId);y0=e.clientY;v0=get();});
@@ -720,8 +735,8 @@ function makeKnob({cx,cy,r,get,set,title,help}){
   });
   host.appendChild(k); draw(); return k;
 }
-makeKnob({cx:68, cy:392,r:42,get:()=>S.af, set:v=>{ S.af=v; S.mute=false; },title:'VOLUM',  help:TIP.af});
-makeKnob({cx:174,cy:392,r:32,get:()=>S.sql,set:v=>S.sql=v,                   title:'SQUELCH',help:TIP.sql});
+makeKnob({cx:930, cy:76, r:28, get:()=>S.sql, set:v=>S.sql=v,                   title:'SQUELCH', help:TIP.sql});
+makeKnob({cx:930, cy:262,r:46, get:()=>S.af,  set:v=>{ S.af=v; S.mute=false; }, title:'VOLUM',   help:TIP.af});
 
 /* main dial */
 const dial=$('dial'), face=$('dialFace');
@@ -755,7 +770,7 @@ window.addEventListener('keydown',e=>{
 });
 
 /* ---------------- fit to screen ---------------- */
-const W=1000, HH=552;
+const W=1040, HH=450;
 function fit(){
   const s=Math.min(1.25,(window.innerWidth-32)/W,(window.innerHeight-32)/HH);
   stage._scale = s;
