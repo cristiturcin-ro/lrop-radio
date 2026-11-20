@@ -34,8 +34,6 @@ body{
 }
 #fit{position:relative}
 #stage{position:absolute;left:0;top:0;width:1000px;height:520px;transform-origin:0 0}
-/* everything under the display is shifted down by the bandscope height */
-.low{position:absolute;left:0;top:48px;width:1000px;height:0}
 
 /* ---------- case ---------- */
 .case{position:absolute;left:0;top:0;width:1000px;height:488px;border-radius:14px;
@@ -50,11 +48,11 @@ body{
 .logo small{font-size:12px;letter-spacing:2px;color:#aaa;font-style:normal;margin-left:4px}
 .model{left:124px;top:17px;padding:2px 10px;border:1px solid #777;border-radius:3px;
   font:700 18px/1.1 "Barlow Condensed";letter-spacing:2px;color:#f2f2f2}
-.title-bar{left:250px;top:10px;width:470px;height:26px;border-radius:4px;
+.title-bar{left:232px;top:12px;width:382px;height:26px;border-radius:4px;
   background:linear-gradient(180deg,#26272b,#1a1b1e);box-shadow:0 1px 0 #3b3d42 inset,0 0 0 1px #0d0d0f;
   text-align:center;font:600 13px/26px "Barlow Condensed";letter-spacing:3px;color:#e6e6e6}
 
-.speaker{left:22px;top:58px;width:200px;height:270px;border-radius:8px;
+.speaker{left:24px;top:48px;width:190px;height:166px;border-radius:8px;
   background:repeating-linear-gradient(180deg,#0b0b0d 0 7px,#2e3034 7px 9px,#1a1b1e 9px 13px);
   box-shadow:0 0 0 2px #0c0c0e,0 2px 0 2px #34363b}
 
@@ -69,10 +67,14 @@ button{font-family:inherit}
 .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn.on::after{content:"";position:absolute;right:5px;top:5px;width:5px;height:5px;border-radius:50%;
   background:#ffb04a;box-shadow:0 0 6px #ff9a1f}
-.key{width:70px;height:34px;font-size:20px}
-.key b{position:absolute;right:10px;top:4px;font-weight:600}
-.small{height:21px;width:54px;font-size:11px;border-radius:4px}
-.mode-lbl{position:absolute;width:38px;text-align:center;font:600 11px/1 "Barlow Condensed";color:#eee;letter-spacing:.5px;cursor:help}
+.btn.big{height:46px;font-size:16px;letter-spacing:2px}
+.btn.fn{font-size:13px;letter-spacing:1px}
+/* buton activ (MUTE, CLOCK, LOCK): literele se aprind în portocaliu */
+.btn.lit{color:#ffb04a;text-shadow:0 0 6px rgba(255,150,40,.55)}
+.btn.chbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.chbtn .nm{letter-spacing:1px;white-space:nowrap}
+.chbtn .fq{font:500 11px/1 "Barlow Condensed";letter-spacing:1px;color:#8d8f94}
+.btn.chbtn.on .fq{color:#c98a3f}
 .btn.tab{color:#bbb;background:linear-gradient(180deg,#2e3034,#1c1d20)}
 /* tab-ul / canalul selectat: se aprind doar literele în portocaliu – fără fundal colorat, fără punct */
 .btn.tab.on,.btn.chbtn.on{color:#ffb04a;text-shadow:0 0 6px rgba(255,150,40,.55)}
@@ -82,24 +84,14 @@ button{font-family:inherit}
 .btn.power.idle{animation:pwrGlow 1.8s ease-in-out infinite}
 .hint b{color:#ff9a1f;font-weight:700}
 @keyframes pwrGlow{50%{box-shadow:0 0 0 2px #ff9a1f,0 0 18px 4px rgba(255,140,30,.5)}}
-.mode-btn{width:30px;height:22px;border-radius:3px}
 .lbl{position:absolute;font:600 13px/1 "Barlow Condensed";letter-spacing:1px;color:#e6e6e6;text-align:center}
 
-.power{left:132px;top:320px;width:84px;height:36px;border-radius:4px;
-  background:linear-gradient(180deg,#2a2b2f,#121315)}
-.power::before{content:"";position:absolute;left:8px;right:8px;top:7px;bottom:7px;border-radius:2px;
-  background:linear-gradient(180deg,#303236,#18191c);box-shadow:0 0 0 1px #000}
-.power-lbl{left:132px;top:298px;width:84px;padding:2px 0;background:#ddd;color:#111;border-radius:2px;font-size:12px}
-.jack{left:44px;top:318px;width:40px;height:40px;border-radius:50%;
-  background:radial-gradient(circle,#000 0 7px,#888 8px 9px,#2b2c30 10px 15px,#111 16px 20px);
-  box-shadow:0 0 0 2px #3a3b40}
-.led{left:224px;top:333px;width:7px;height:7px;border-radius:50%;background:#2a1a0a;transition:.2s}
-.led.on{background:#ff9a1f;box-shadow:0 0 8px #ff8a10}
+.klbl{font-size:12px;letter-spacing:2px;color:#d9d9d9}
 
 /* ---------- display ---------- */
-.bezel{left:236px;top:46px;width:492px;height:252px;border-radius:8px;
+.bezel{left:232px;top:48px;width:382px;height:252px;border-radius:8px;
   background:linear-gradient(180deg,#0f1012,#1c1d20);box-shadow:0 0 0 2px #050506,0 2px 0 2px #2f3135}
-.lcd{left:246px;top:56px;width:362px;height:232px;border-radius:4px;overflow:hidden;
+.lcd{left:242px;top:58px;width:362px;height:232px;border-radius:4px;overflow:hidden;
   background:var(--lcd-off);box-shadow:0 0 0 3px #0a0a0a inset,0 6px 14px rgba(0,0,0,.6) inset;
   transition:background .35s,filter .2s;color:var(--seg-on)}
 .lcd.on{background:radial-gradient(ellipse at 50% 40%,var(--lcd-on-1),var(--lcd-on-2) 85%)}
@@ -116,8 +108,6 @@ button{font-family:inherit}
 .seg.on{fill:var(--seg-on)}
 .blink{animation:blink .9s steps(1) infinite}
 @keyframes blink{50%{opacity:.15}}
-.mch{position:absolute;right:12px;top:98px;display:flex;align-items:flex-end;gap:2px}
-.mch .tag{font:700 12px/1 "Barlow Condensed";margin-right:3px}
 .smeter{position:absolute;left:14px;top:124px;width:250px}
 .scale{position:relative;height:12px;font:700 10px/1 "Barlow Condensed"}
 .scale span{position:absolute;transform:translateX(-50%)}
@@ -138,18 +128,19 @@ button{font-family:inherit}
 .knob{position:absolute;border-radius:50%;cursor:ns-resize;touch-action:none}
 .knob.outer{background:repeating-conic-gradient(#2c2d31 0 4deg,#141517 4deg 8deg);
   box-shadow:0 4px 8px rgba(0,0,0,.8),0 0 0 2px #0a0a0b}
-.knob.inner{background:radial-gradient(circle at 40% 35%,#45474c,#18191c 70%);
+.knob .cap{position:absolute;inset:17%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#45474c,#18191c 70%);
   box-shadow:0 3px 6px rgba(0,0,0,.8),0 0 0 2px #0a0a0b}
-.knob .mark{position:absolute;left:50%;top:4px;width:3px;height:30%;margin-left:-1.5px;background:#ddd;border-radius:2px}
-.knob.outer .mark{top:2px;height:9px;background:#ff9a1f}
+.knob .mark{position:absolute;left:50%;top:4px;width:3px;height:32%;margin-left:-1.5px;background:#ddd;border-radius:2px}
+.knob > .mark{top:2px;height:9px;background:#ff9a1f}
+.knob:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 
-.dial{left:537px;top:252px;width:178px;height:178px;border-radius:50%;cursor:grab;touch-action:none;
+.dial{left:243px;top:315px;width:150px;height:150px;border-radius:50%;cursor:grab;touch-action:none;
   background:repeating-conic-gradient(#232428 0 3deg,#0d0e10 3deg 6deg);
   box-shadow:0 8px 18px rgba(0,0,0,.85),0 0 0 3px #08080a,0 0 0 5px #2a2b2f}
 .dial:active{cursor:grabbing}
-.dial-face{position:absolute;inset:16px;border-radius:50%;
+.dial-face{position:absolute;inset:14px;border-radius:50%;
   background:radial-gradient(circle at 42% 35%,#2e3034,#0f1012 75%);box-shadow:0 0 0 2px #050506,0 -2px 4px rgba(255,255,255,.06) inset}
-.dimple{position:absolute;left:50%;top:22px;width:44px;height:44px;margin-left:-22px;border-radius:50%;
+.dimple{position:absolute;left:50%;top:16px;width:36px;height:36px;margin-left:-18px;border-radius:50%;
   background:radial-gradient(circle at 55% 60%,#2b2d31,#060607 70%);box-shadow:0 1px 1px rgba(255,255,255,.08)}
 
 .hint{position:absolute;left:0;top:526px;width:1000px;text-align:center;font:500 13px/1.4 "Barlow Condensed";color:#8a8c91;letter-spacing:.5px}
@@ -166,19 +157,23 @@ button{font-family:inherit}
   <div class="abs title-bar" id="subtitle"></div>
   <div class="abs speaker"></div>
 
-  <!-- display -->
+  <!-- stânga: sunetul – pornire, mut, volum, squelch -->
+  <button class="btn big power" id="power" style="left:24px;top:230px;width:88px">POWER</button>
+  <button class="btn big" id="mute" style="left:126px;top:230px;width:88px">MUTE</button>
+  <div class="lbl klbl" style="left:16px;top:316px;width:104px">VOLUME</div>
+  <div class="lbl klbl" style="left:126px;top:316px;width:96px">SQUELCH</div>
+  <div id="knobs"></div>
+
+  <!-- mijloc: afișajul, sub el dialul și butoanele folosite mai rar -->
   <div class="abs bezel"></div>
   <div class="abs lcd" id="lcd">
-    <span class="ind box" id="i-vfo" style="left:14px;top:9px">VFO</span>
-    <span class="ind box" id="i-mem" style="left:44px;top:9px">MEMO</span>
-    <span class="ind on" id="i-am" style="left:96px;top:9px">AM</span>
-    <span class="ind box" id="i-scan" style="left:170px;top:9px">SCAN</span>
-    <span class="ind" id="i-live" style="left:212px;top:9px">LIVE</span>
-    <span class="ind box" id="i-rx" style="left:322px;top:9px">RX</span>
+    <span class="ind on" id="i-am" style="left:14px;top:9px">AM</span>
+    <span class="ind" id="i-live" style="left:40px;top:9px">LIVE</span>
+    <span class="ind box" id="i-rx" style="left:70px;top:9px">RX</span>
+    <span class="ind box" id="i-mute" style="left:262px;top:9px">MUTE</span>
+    <span class="ind box" id="i-lock" style="left:308px;top:9px">LOCK</span>
     <div class="freq" id="freq"></div>
-    <div class="mch" id="mch"></div>
-    <span class="ind box" id="i-lock" style="left:14px;top:102px">LOCK</span>
-    <span class="ind on" id="i-ts" style="left:56px;top:104px">STEP 25k</span>
+    <span class="ind on" id="i-ts" style="left:14px;top:104px">STEP 25k</span>
     <div class="smeter">
       <div class="scale" id="scale"></div>
       <div class="bars" id="bars"></div>
@@ -191,27 +186,13 @@ button{font-family:inherit}
     <button class="sdr-open" id="sdrOpen">▶ WEB SDR</button>
   </div>
 
-  <div id="modes"></div>
+  <div class="dial abs" id="dial"><div class="dial-face" id="dialFace"><div class="dimple"></div></div></div>
+  <div id="fns"></div>
 
-  <div class="low">
-    <div class="lbl" style="left:30px;top:298px;width:68px">PHONES</div>
-    <div class="abs jack"></div>
-    <div class="lbl power-lbl">POWER</div>
-    <button class="btn power" id="power" aria-label="Power"></button>
-    <div class="abs led" id="led"></div>
-
-    <div class="lbl" style="left:244px;top:262px;width:96px">AF ◦ SQL</div>
-    <div class="lbl" style="left:352px;top:262px;width:80px">DIMMER</div>
-    <div id="knobs"></div>
-    <button class="btn" id="clock" style="left:448px;top:276px;width:66px;height:30px;font-size:12px">CLOCK</button>
-    <button class="btn" id="lock" style="left:448px;top:328px;width:66px;height:30px;font-size:12px">LOCK</button>
-
-    <div class="dial abs" id="dial"><div class="dial-face" id="dialFace"><div class="dimple"></div></div></div>
-    <div id="bottom"></div>
-  </div>
+  <!-- dreapta: domeniile și canalele -->
   <div id="keys"></div>
 
-  <div class="hint"><b>①</b> alege un domeniu și un canal din dreapta &nbsp;<b>②</b> AF = volum &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
+  <div class="hint"><b>①</b> alege un canal din dreapta (radioul pornește singur) &nbsp;<b>②</b> VOLUME și MUTE în stânga &nbsp;·&nbsp; ține mouse-ul pe orice buton ca să afli ce face &nbsp;·&nbsp; <a href="mobile.html" style="color:#ff9a1f">versiunea portabilă</a></div>
 </div></div>
 
 <audio id="stream" preload="none"></audio>
@@ -247,16 +228,13 @@ const store = {
 /* ---------------- state ---------------- */
 const S = {
   power:false, freq:store.get('freq', CHANNELS[0].f), step:25, mode:'AM',
-  vfo:true, mem:store.get('mem2', null), mch:0,
-  af:store.get('af', .6), sql:store.get('sql', .15), dim:store.get('dim', 1),
+  af:store.get('af', .6), sql:store.get('sql', .15), dim:store.get('dim', 1), mute:false,
   pamp:false, att:false, nb:false, nr:false, anf:false, agc:'F', fil:2,
-  lock:false, scan:null, entry:null, err:0, textMode:0, span:3,
+  lock:false, entry:null, err:0, textMode:0, span:3,
   streamState:'OFF', level:0, ch:null
 };
-// memoriile = canalele din channels.js + GUARD + ce ai salvat tu cu SAVE (MEM n)
-{ const own = (Array.isArray(S.mem) ? S.mem : []).filter(m => /^MEM \d+$/.test(m.n) && !CHANNELS.some(c=>c.f===m.f));
-  S.mem = [...CHANNELS.map(c=>({f:c.f,n:c.name})), {f:CONFIG.guard||121500, n:'GUARD'}, ...own].slice(0,99); }
-if(bandIdx(S.freq)<0) S.freq = CHANNELS[0].f;
+// dacă frecvența salvată nu mai e pe niciun canal (ex. un canal scos), pornește pe primul canal
+if(bandIdx(S.freq)<0 || !CHANNELS.some(c=>Math.abs(c.f-S.freq)<=6)) S.freq = CHANNELS[0].f;
 S.band = bandIdx(S.freq); S.mode = BANDS[S.band].mode; S.step = BANDS[S.band].step;
 
 /* ---------------- 7-segment ---------------- */
@@ -403,7 +381,7 @@ function levels(){
   let n = 1 - (live ? sig*.95 : 0);
   if(S.mode!==want) n = Math.max(n,.7);
   if(S.pamp) n*=1.4; if(S.att) n*=.5; if(S.nb) n*=.8; if(S.nr) n*=.55; if(S.anf) n*=.9;
-  const af = S.af*S.af;
+  const af = S.mute ? 0 : S.af*S.af;
   const mf = S.mode===want ? 1 : S.mode==='FM' ? 0 : .35;
   const streamVol = (S.power && open && live && sig>0) ? af*sig*mf : 0;
   const noiseVol = (S.power && open) ? af*n*.22 : 0;
@@ -432,14 +410,16 @@ function update(){
   const L = applyAudio();
   lcd.classList.toggle('on', S.power);
   lcd.style.filter = `brightness(${.55+.45*S.dim})`;
-  $('led').classList.toggle('on', S.power);
+  $('power').classList.toggle('on', S.power);
   $('power').classList.toggle('idle', !S.power);      // pulsează până îl pornești
+  $('mute').classList.toggle('lit', S.mute); $('mute').textContent = S.mute ? 'MUTED' : 'MUTE';
+  if(fnEls.CLOCK){ fnEls.CLOCK.classList.toggle('lit', S.textMode===1); fnEls.LOCK.classList.toggle('lit', S.lock); }
   KEEPALIVE.wake(S.power);                            // cât timp e pornit: ecranul nu se stinge
   renderGroups();
   const ind=(id,on)=>$(id).classList.toggle('on',!!on);
-  ind('i-vfo',S.vfo); ind('i-mem',!S.vfo); $('i-am').textContent = S.mode;
-  ind('i-scan',S.scan); ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
-  ind('i-lock',S.lock);
+  $('i-am').textContent = S.mode;
+  ind('i-live',L.live && S.ch); ind('i-rx',L.open && L.sig>0 && L.live);
+  ind('i-lock',S.lock); ind('i-mute',S.mute);
   $('i-ts').textContent='STEP '+S.step+'k';
   const hs = SPANS[S.span]/2;
   $('i-spanv').textContent = '±' + (hs>=1000 ? (hs/1000)+'M' : hs+'k');
@@ -456,18 +436,16 @@ function update(){
     const [main, sub] = fmtFreq(S.freq);
     fe.innerHTML = renderDigits(main,62) + `<div style="margin-left:4px;display:flex">${renderDigits(sub,30)}</div>`;
   }
-  $('mch').innerHTML = `<span class="tag">${S.vfo?'':'M-CH'}</span>` + (S.vfo ? '' : renderDigits(pad2(S.mch+1),30));
 
   let t;
-  const memName = !S.vfo && S.mem[S.mch] ? S.mem[S.mch].n : null;
-  const near = S.mem.find(m=>Math.abs(m.f-S.freq)<=2);
+  const near = Math.abs((CONFIG.guard||121500) - S.freq)<=2 ? 'GUARD' : null;
   const fb = S.power && sdrFallback();
   if(S.err) t = 'OUT OF BAND';
   else if(S.entry!==null) t = 'ENTER MHz  ·  ENT';
   else if(S.textMode===1) t = clockText();
   else if(S.textMode===2) t = S.ch ? (chTag(S.ch)+': '+S.streamState) : 'NO FEED HERE';
   else {
-    t = memName || (S.ch && S.ch.name) || (near && near.n) || (S.vfo?'VFO':'M'+pad2(S.mch+1));
+    t = (S.ch && S.ch.name) || near || 'NO CHANNEL';
     if(S.ch && S.streamState!=='LIVE' && !fb) t += '  ['+S.streamState+']';
   }
   $('text').textContent = t;
@@ -523,8 +501,7 @@ scope.addEventListener('click', e=>{
   const c = nearest(f);
   if(Math.abs(c.f - f) < span/40) f = c.f;           // snap pe semnalul vizibil
   else f = Math.round(f/S.step)*S.step;
-  if(S.scan) stopScan();
-  S.vfo = true; S.freq = clampF(f); save(); update();
+  S.freq = clampF(f); save(); update();
 });
 scope.addEventListener('wheel', e=>{ e.preventDefault(); S.span = Math.max(0,Math.min(SPANS.length-1, S.span + (e.deltaY>0?1:-1))); update(); },{passive:false});
 $('i-span').style.cursor='pointer';
@@ -553,37 +530,31 @@ requestAnimationFrame(tick);
 setInterval(()=>{ if(S.power && S.textMode===1) update(); },1000);
 
 /* ---------------- actions ---------------- */
-function save(){ store.set('freq',S.freq); store.set('af',S.af); store.set('sql',S.sql); store.set('dim',S.dim); store.set('mem2',S.mem); }
-/* acordul relativ (dial, săgeți, scan) rămâne în banda curentă și face wrap la capete */
+function save(){ store.set('freq',S.freq); store.set('af',S.af); store.set('sql',S.sql); store.set('dim',S.dim); }
+/* acordul relativ (dial, săgeți) rămâne în banda curentă și face wrap la capete */
 function clampF(f){ const b = BANDS[Math.max(0,bandIdx(S.freq))]; if(f<b.lo) return b.hi; if(f>b.hi) return b.lo; return f; }
 function tune(steps){
   if(!S.power || S.lock) return;
-  if(S.scan) stopScan();
-  if(S.vfo){
-    const st=S.step, dir=Math.sign(steps);
-    for(let k=0;k<Math.abs(steps);k++){
-      const from=S.freq;
-      let f = dir>0 ? (Math.floor(from/st)+1)*st : (Math.ceil(from/st)-1)*st;
-      // dialul se oprește singur pe orice canal aflat între poziția curentă și următorul pas
-      const hit = CHANNELS.filter(c => dir>0 ? (c.f>from && c.f<f) : (c.f<from && c.f>f)).sort((a,b)=>dir*(a.f-b.f))[0];
-      if(hit) f = hit.f;
-      S.freq = clampF(f);
-    }
-  } else {
-    S.mch = (S.mch + steps + S.mem.length*100) % S.mem.length;
-    S.freq = S.mem[S.mch].f;
+  const st=S.step, dir=Math.sign(steps);
+  for(let k=0;k<Math.abs(steps);k++){
+    const from=S.freq;
+    let f = dir>0 ? (Math.floor(from/st)+1)*st : (Math.ceil(from/st)-1)*st;
+    // dialul se oprește singur pe orice canal aflat între poziția curentă și următorul pas
+    const hit = CHANNELS.filter(c => dir>0 ? (c.f>from && c.f<f) : (c.f<from && c.f>f)).sort((a,b)=>dir*(a.f-b.f))[0];
+    if(hit) f = hit.f;
+    S.freq = clampF(f);
   }
   save(); update();
 }
 function power(){
   S.power=!S.power;
   if(S.power){ initNoise(); if(ctx && ctx.state==='suspended') ctx.resume(); }
-  else { stopScan(); S.entry=null; }
+  else S.entry=null;
   update();
 }
+function toggleMute(){ S.mute=!S.mute; update(); }
 function keyIn(ch){
   if(!S.power) return;
-  if(S.scan) stopScan();
   if(S.entry===null) S.entry='';
   if(ch==='.' && S.entry.includes('.')) return;
   if(S.entry.replace('.','').length>=6) return;
@@ -597,69 +568,30 @@ function enter(){
   // doar cifre și nu e frecvență VHF validă → poate e kHz în HF (ex. 5505)
   if(bandIdx(k)<0 && !e.includes('.') && bandIdx(+e)>=0) k = +e;
   if(!isFinite(k) || bandIdx(k)<0){ S.err=1; update(); setTimeout(()=>{S.err=0;update();},1200); return; }
-  S.freq=k; S.vfo=true; save(); update();
+  S.freq=k; save(); update();
 }
-function clr(){ S.entry=null; S.err=0; if(S.scan) stopScan(); update(); }
-function vm(){
-  if(!S.power) return;
-  S.vfo=!S.vfo;
-  if(!S.vfo){ const i=S.mem.findIndex(m=>m.f===S.freq); if(i>=0) S.mch=i; S.freq=S.mem[S.mch].f; }
-  update();
-}
-function mw(){
-  if(!S.power) return;
-  if(S.mem.some(m=>m.f===S.freq)){ flashText('ALREADY STORED'); return; }
-  if(S.mem.length>=99){ flashText('MEMORY FULL'); return; }
-  S.mem.push({f:S.freq,n:'MEM '+(S.mem.length+1)}); save();
-  flashText('WRITTEN M'+pad2(S.mem.length));
-}
-function flashText(s){ $('text').textContent=s; clearTimeout(flashText.t); flashText.t=setTimeout(update,1300); }
-function scan(){
-  if(!S.power) return;
-  if(S.scan){ stopScan(); return; }
-  S.entry=null;
-  if(S.vfo){
-    // caută până la următorul canal cu feed, apoi se oprește
-    S.freq = clampF(S.freq + 25);
-    S.scan = setInterval(()=>{
-      S.freq = clampF(S.freq + 25);
-      const c = nearest();
-      if(Math.abs(c.f - S.freq) < 25){ S.freq = c.f; stopScan(); }
-      update();
-    },45);
-  } else {
-    // memorii: ascultă fiecare canal câteva secunde
-    S.scan = setInterval(()=>{ S.mch=(S.mch+1)%S.mem.length; S.freq=S.mem[S.mch].f; update(); },6000);
-  }
-  update();
-}
-function stopScan(){ if(S.scan){ clearInterval(S.scan); S.scan=null; save(); update(); } }
+function clr(){ S.entry=null; S.err=0; update(); }
 
 /* ---------------- texte de ajutor (popup la hover / apăsare lungă) ---------------- */
 const fmtF = f => f>=100000 ? (f/1000).toFixed(3)+' MHz' : f+' kHz';
 const TIP = {
   power: {t:'PORNIRE / OPRIRE', d:'Pornește receptorul – fără el nu se aude nimic. Cât timp e pornit, ecranul nu se stinge și stream-ul se reconectează singur dacă pică. Sfat: un clic pe un canal din dreapta îl pornește automat.'},
-  af:    {t:'VOLUM (AF)', d:'Butonul mic din mijloc. Trage în sus/jos sau folosește rotița mouse-ului.'},
-  sql:   {t:'SQUELCH (SQL)', d:'Inelul mare din jur. Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
-  dim:   {t:'LUMINOZITATE', d:'Cât de tare luminează afișajul.'},
+  af:    {t:'VOLUM', d:'Trage butonul în sus/jos sau folosește rotița mouse-ului. Dacă sunetul e pe MUTE, rotirea îl readuce.', k:'Taste: clic pe buton, apoi [↑] [↓]'},
+  sql:   {t:'SQUELCH', d:'Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
+  mute:  {t:'MUT', d:'Oprește sunetul dintr-o apăsare, fără să pierzi canalul sau volumul. Apasă din nou (sau rotește VOLUME) ca să revină.', k:'Tasta [M]'},
+  dim:   {t:'LUMINĂ AFIȘAJ', d:'Cât de tare luminează afișajul: 100% → 70% → 40%.'},
   clock: {t:'CEAS', d:'Arată ora Bucureștiului (BUC) și, în dreapta, ora locală (LCL) a locului pe care îl asculți, cu diferența față de București: +6h = acolo e cu 6 ore mai târziu, -8h = cu 8 ore mai devreme. Apasă din nou ca să revii la numele canalului.'},
-  lock:  {t:'BLOCARE', d:'Blochează dialul și tastele, ca să nu schimbi frecvența din greșeală.'},
-  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența: trage în cerc sau folosește rotița mouse-ului. Se oprește singur pe fiecare canal. În modul MEM trece prin canalele salvate.', k:'Taste: [↑] [↓]'},
+  lock:  {t:'BLOCARE', d:'Blochează dialul și canalele, ca să nu schimbi frecvența din greșeală.'},
+  dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența pas cu pas: trage în cerc sau folosește rotița mouse-ului. Se oprește singur pe fiecare canal.', k:'Taste: [↑] [↓]'},
   STEP:  ()=>({t:'PAS DE ACORD', d:`Cât sare frecvența la fiecare pas al dialului: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
   SPAN:  {t:'LĂȚIME SPECTRU', d:'Cât din bandă vezi în graficul de pe afișaj. Merge și cu rotița mouse-ului pe grafic.'},
   INFO:  {t:'INFO AFIȘAJ', d:'Schimbă ultimul rând de pe afișaj: numele canalului → ceas → sursa audio și starea conexiunii.'},
-  VM:    {t:'VFO / MEMORIE', d:'VFO = acord liber pe orice frecvență. MEM = treci doar prin canalele salvate, cu ▲ ▼ sau dialul.'},
-  SAVE:  {t:'SALVEAZĂ', d:'Salvează frecvența curentă ca un canal nou în memorie (le găsești în modul MEM).'},
-  DOWN:  {t:'ÎN JOS', d:'Un pas de frecvență în jos (în modul MEM: canalul anterior).', k:'[↓]'},
-  UP:    {t:'ÎN SUS', d:'Un pas de frecvență în sus (în modul MEM: canalul următor).', k:'[↑]'},
-  SCAN:  {t:'SCANARE', d:'Caută singur următorul canal cu semnal și se oprește pe el. În modul MEM ascultă pe rând fiecare canal salvat. Apasă din nou pentru stop.'},
   freq:  {t:'FRECVENȚA', d:'Frecvența acordată, în MHz: 108–137 = aviație (AM), 137–174 = urgențe, tren, maritim, meteo (FM). Poți scrie o frecvență direct de la tastatura calculatorului, ex. 121.1 + Enter.', k:'[0-9] [.] [Enter] · [Esc] anulează'},
   smeter:{t:'S-METRU', d:'Puterea semnalului recepționat.'},
   scope: {t:'SPECTRU', d:'Vârfurile sunt canale cu semnal. Clic pe un vârf ca să te acordezi pe el; rotița mouse-ului schimbă cât vezi.'},
   text:  {t:'NUME / STARE', d:'Numele canalului. Între paranteze: CONNECT = se conectează, BUFFER = se încarcă, NO LINK = sursa nu răspunde.'},
   live:  {t:'LIVE', d:'Sursa audio (LiveATC sau receptorul web) e conectată.'},
   rx:    {t:'RX', d:'Se aude un semnal chiar acum (squelch deschis).'},
-  vfo:   {t:'VFO / MEMO', d:'Arată modul: VFO = acord liber, MEMO = canale salvate.'},
   sdrOpen: ()=>{
     const why = S.streamState==='WEB ONLY' ? (SDR.isSecurePage() ? 'site-ul e pe https, iar receptoarele doar pe http' : 'receptorul WebSDR se ascultă doar pe pagina lui')
               : S.streamState==='BUSY' ? 'receptoarele sunt ocupate acum' : 'receptoarele nu răspund acum';
@@ -679,45 +611,50 @@ function mkBtn(parent, {x,y,w,h,label,cls='',fn,title,help}){
   if(help) HELP.attach(b, help);
   parent.appendChild(b); return b;
 }
-const modes=$('modes');
+/* sub afișaj: butoanele folosite mai rar (2 rânduri × 3) */
+const fns=$('fns'), fnEls={};
 [
-  ['STEP',()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }],
-  ['SPAN',()=>{ S.span=(S.span+1)%SPANS.length; update(); }],
-  ['INFO',()=>{ S.textMode=(S.textMode+1)%3; update(); }],
-].forEach(([n,fn],i)=>mkBtn(modes,{x:620,y:78+i*66,w:96,h:36,label:`<span style="font-size:14px;letter-spacing:1px">${n}</span>`,fn,title:n,help:TIP[n]}));
+  ['CLOCK',()=>{ S.textMode = S.textMode===1?0:1; update(); }, TIP.clock],
+  ['INFO', ()=>{ S.textMode=(S.textMode+1)%3; update(); }, TIP.INFO],
+  ['LOCK', ()=>{ S.lock=!S.lock; update(); }, TIP.lock],
+  ['SPAN', ()=>{ S.span=(S.span+1)%SPANS.length; update(); }, TIP.SPAN],
+  ['STEP', ()=>{ S.step = S.step===25?5:S.step===5?1:25; update(); }, TIP.STEP],
+  ['LIGHT',()=>{ S.dim = S.dim>.9 ? .7 : S.dim>.6 ? .4 : 1; save(); update(); }, TIP.dim],
+].forEach(([n,fn,help],i)=>{ fnEls[n] = mkBtn(fns,{x:414+(i%3)*69,y:343+Math.floor(i/3)*50,w:62,h:40,cls:'fn',label:n,fn,title:n,help}); });
 
 const keys=$('keys');
-/* coloana din dreapta: sus tab-urile pe domenii, sub ele canalele, jos acordul (▼ SCAN ▲) și memoriile.
-   (Tastatura numerică a fost scoasă; o frecvență se poate scrie în continuare de la tastatura calculatorului + Enter.) */
+/* coloana din dreapta: sus tab-urile pe domenii, sub ele canalele – butoane mari, cu numele și frecvența.
+   (O frecvență oarecare se poate scrie în continuare de la tastatura calculatorului + Enter.) */
 const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*', name:'CANALE', info:''}];
 const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
 S.grp = grpOf(nearest()); S.autoGrp = null;
-// tab-uri pe cel mult 3 coloane (2 rânduri dacă sunt multe domenii), apoi canalele
+const RX = 634, RW = 342, RTOP = 48, RBOT = 466;          // zona din dreapta
 const tabCols = Math.min(3, GROUPS.length), tabRows = GROUPS.length<2 ? 1 : Math.ceil(GROUPS.length/tabCols);
-const tabGap = 10, tabW = (230 - (tabCols-1)*tabGap) / tabCols, tabsTop = 26, tabH = 28, tabStep = 34;
-const chTop = tabsTop + tabRows*tabStep + 12, ctrlTop = 344;
-const tabFont = 'font-size:10.5px;letter-spacing:.2px';
-const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{x:746+(i%tabCols)*(tabW+tabGap),y:tabsTop+Math.floor(i/tabCols)*tabStep,w:tabW,h:tabH,cls:'tab',
-  label:`<span style="${tabFont};white-space:nowrap">${g.name}</span>`, title:g.name,
+const tabGap = 10, tabH = 30, tabStep = 38;
+const chTop = RTOP + tabRows*tabStep + 12;
+// fiecare rând de tab-uri umple toată lățimea (ex. 5 domenii → 3 sus, 2 mai late jos)
+const tabPos = i => { const row=Math.floor(i/tabCols), n=Math.min(tabCols, GROUPS.length-row*tabCols), w=(RW-(n-1)*tabGap)/n;
+  return {x:RX+(i%tabCols)*(w+tabGap), y:RTOP+row*tabStep, w}; };
+const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{...tabPos(i),h:tabH,cls:'tab',
+  label:`<span style="font-size:12px;letter-spacing:1.5px;white-space:nowrap">${g.name}</span>`, title:g.name,
   help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
 if(GROUPS.length<2){                     // o singură listă → doar un titlu, nu un buton
   const l=document.createElement('div'); l.className='lbl grp-lbl'; l.textContent=GROUPS[0].name;
-  Object.assign(l.style,{left:'746px',top:(tabsTop+6)+'px',width:'230px'}); keys.appendChild(l);
+  Object.assign(l.style,{left:RX+'px',top:(RTOP+6)+'px',width:RW+'px'}); keys.appendChild(l);
   HELP.attach(l, {t:GROUPS[0].name, d:GROUPS[0].info});
 }
-// rândurile de canale se strâng dacă un tab are multe canale (spațiu până la butoanele de acord)
-const chRowsMax = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/3)), 1);
-const chGap = Math.min(46, Math.floor((ctrlTop - 16 - chTop) / chRowsMax)), chH = chGap - 8;
-[
-  ['▼ DOWN',746,ctrlTop,70,()=>tune(-1),TIP.DOWN],['SCAN',826,ctrlTop,70,scan,TIP.SCAN],['UP ▲',906,ctrlTop,70,()=>tune(1),TIP.UP],
-  ['VFO/MEM',746,ctrlTop+46,110,vm,TIP.VM,'V/M'],['SAVE',866,ctrlTop+46,110,mw,TIP.SAVE],
-].forEach(([n,x,y,w,fn,help,aria])=>mkBtn(keys,{x,y,w,h:36,label:n,fn,title:aria||n,help}));
+// 2 coloane de canale; rândurile se strâng doar dacă un tab are foarte multe canale
+const chCols = 2, chW = (RW - 10) / chCols;
+const chRowsMax = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/chCols)), 1);
+const chGap = Math.min(68, Math.floor((RBOT - chTop + 10) / chRowsMax)), chH = chGap - 10;
 const chEls = CHANNELS.map(c=>{
   const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
   const lbl = c.btn || c.mount.toUpperCase();
-  return mkBtn(keys,{x:746+(i%3)*80,y:chTop+Math.floor(i/3)*chGap,w:70,h:chH,cls:'chbtn',
-    label:`<span style="font-size:${lbl.length>11?10.5:12.5}px;white-space:nowrap">${lbl}</span>`, title:c.name+' '+fmtF(c.f), help:chHelp(c),
-    fn:()=>{ if(S.lock) return; if(!S.power) power(); if(S.scan) stopScan(); S.vfo=true; S.freq=c.f; save(); update(); }});
+  const fq = (c.nominal ? '≈ ' : '') + (c.f/1000).toFixed(3);
+  return mkBtn(keys,{x:RX+(i%chCols)*(chW+10),y:chTop+Math.floor(i/chCols)*chGap,w:chW,h:chH,cls:'chbtn',
+    label:`<span class="nm" style="font-size:${lbl.length>11?14:15.5}px">${lbl}</span>${chH>=40?`<span class="fq">${fq}</span>`:''}`,
+    title:c.name+' '+fmtF(c.f), help:chHelp(c),
+    fn:()=>{ if(S.lock) return; if(!S.power) power(); S.freq=c.f; save(); update(); }});
 });
 function renderGroups(){
   // tab-ul urmează canalul acordat (dar poți răsfoi alt tab fără să schimbi frecvența)
@@ -728,15 +665,14 @@ function renderGroups(){
 }
 
 $('power').addEventListener('click',power);
-$('clock').addEventListener('click',()=>{ S.textMode = S.textMode===1?0:1; update(); });
-$('lock').addEventListener('click',e=>{ S.lock=!S.lock; e.currentTarget.classList.toggle('on',S.lock); update(); });
-HELP.attach($('power'), TIP.power); HELP.attach($('clock'), TIP.clock); HELP.attach($('lock'), TIP.lock);
+$('mute').addEventListener('click',toggleMute);
+HELP.attach($('power'), TIP.power); HELP.attach($('mute'), TIP.mute); HELP.attach($('i-mute'), TIP.mute);
 HELP.attach($('freq'), TIP.freq); HELP.attach(document.querySelector('.smeter'), TIP.smeter);
 HELP.attach($('scope'), TIP.scope); HELP.attach($('text'), TIP.text); HELP.attach($('sdrOpen'), TIP.sdrOpen);
-HELP.attach($('i-live'), TIP.live); HELP.attach($('i-rx'), TIP.rx); HELP.attach($('i-vfo'), TIP.vfo); HELP.attach($('i-mem'), TIP.vfo);
+HELP.attach($('i-live'), TIP.live); HELP.attach($('i-rx'), TIP.rx);
 
-/* knobs */
-function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles,helps}){
+/* knobs: VOLUME (mare) și SQUELCH, separate */
+function makeKnob({cx,cy,r,get,set,title,help}){
   const host=$('knobs');
   const ticks=document.createElement('div'); ticks.className='ticks';
   for(let i=0;i<11;i++){
@@ -744,31 +680,28 @@ function makeKnob({cx,cy,r,ri,get,set,getI,setI,titles,helps}){
     const d=document.createElement('i'); d.style.left=(cx+Math.sin(a)*R)+'px'; d.style.top=(cy-Math.cos(a)*R)+'px'; ticks.appendChild(d);
   }
   host.appendChild(ticks);
-  const mk=(rad,cls,g,s,title,help)=>{
-    const k=document.createElement('div'); k.className='knob '+cls; k.setAttribute('aria-label',title);
-    if(help) HELP.attach(k, help);
-    Object.assign(k.style,{left:(cx-rad)+'px',top:(cy-rad)+'px',width:rad*2+'px',height:rad*2+'px'});
-    k.innerHTML='<div class="mark"></div>'; k.tabIndex=0;
-    const draw=()=>k.style.transform=`rotate(${-135+g()*270}deg)`;
-    const setV=v=>{ s(Math.max(0,Math.min(1,v))); draw(); update(); save(); };
-    let y0=null,v0=0;
-    k.addEventListener('pointerdown',e=>{e.stopPropagation();k.setPointerCapture(e.pointerId);y0=e.clientY;v0=g();});
-    k.addEventListener('pointermove',e=>{ if(y0!==null) setV(v0+(y0-e.clientY)/150); });
-    k.addEventListener('pointerup',()=>y0=null);
-    k.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation(); setV(g()-Math.sign(e.deltaY)*.04);},{passive:false});
-    k.addEventListener('keydown',e=>{
-      if(e.key==='ArrowUp'||e.key==='ArrowRight') setV(g()+.05);
-      else if(e.key==='ArrowDown'||e.key==='ArrowLeft') setV(g()-.05);
-      else return;
-      e.preventDefault(); e.stopPropagation();
-    });
-    host.appendChild(k); draw(); return k;
-  };
-  mk(r,'outer',get,set,titles[0],helps[0]);
-  if(getI) mk(ri,'inner',getI,setI,titles[1],helps[1]);
+  const k=document.createElement('div'); k.className='knob outer'; k.setAttribute('aria-label',title);
+  k.setAttribute('role','slider'); k.tabIndex=0;
+  if(help) HELP.attach(k, help);
+  Object.assign(k.style,{left:(cx-r)+'px',top:(cy-r)+'px',width:r*2+'px',height:r*2+'px'});
+  k.innerHTML='<div class="mark"></div><div class="cap"><div class="mark"></div></div>';
+  const draw=()=>k.style.transform=`rotate(${-135+get()*270}deg)`;
+  const setV=v=>{ set(Math.max(0,Math.min(1,v))); draw(); update(); save(); };
+  let y0=null,v0=0;
+  k.addEventListener('pointerdown',e=>{e.stopPropagation();k.setPointerCapture(e.pointerId);y0=e.clientY;v0=get();});
+  k.addEventListener('pointermove',e=>{ if(y0!==null) setV(v0+(y0-e.clientY)/150); });
+  k.addEventListener('pointerup',()=>y0=null);
+  k.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation(); setV(get()-Math.sign(e.deltaY)*.04);},{passive:false});
+  k.addEventListener('keydown',e=>{
+    if(e.key==='ArrowUp'||e.key==='ArrowRight') setV(get()+.05);
+    else if(e.key==='ArrowDown'||e.key==='ArrowLeft') setV(get()-.05);
+    else return;
+    e.preventDefault(); e.stopPropagation();
+  });
+  host.appendChild(k); draw(); return k;
 }
-makeKnob({cx:292,cy:330,r:42,ri:27,get:()=>S.sql,set:v=>S.sql=v,getI:()=>S.af,setI:v=>S.af=v,titles:['SQL','AF (volum)'],helps:[TIP.sql,TIP.af]});
-makeKnob({cx:392,cy:330,r:30,ri:24,get:()=>S.dim,set:v=>S.dim=v,getI:()=>S.dim,setI:v=>S.dim=v,titles:['DIMMER','DIMMER'],helps:[TIP.dim,TIP.dim]});
+makeKnob({cx:68, cy:392,r:42,get:()=>S.af, set:v=>{ S.af=v; S.mute=false; },title:'VOLUM',  help:TIP.af});
+makeKnob({cx:174,cy:392,r:32,get:()=>S.sql,set:v=>S.sql=v,                   title:'SQUELCH',help:TIP.sql});
 
 /* main dial */
 const dial=$('dial'), face=$('dialFace');
@@ -783,7 +716,7 @@ dial.addEventListener('pointermove',e=>{
   const a=ang(e); let d=a-lastA; if(d>180)d-=360; if(d<-180)d+=360; lastA=a;
   if(S.lock || !S.power) return;
   spin(d); acc+=d;
-  const per = S.vfo?10:30;
+  const per = 10;
   while(Math.abs(acc)>=per){ tune(Math.sign(acc)); acc-=Math.sign(acc)*per; }
 });
 dial.addEventListener('pointerup',()=>lastA=null);
@@ -795,6 +728,7 @@ window.addEventListener('keydown',e=>{
   if(/^[0-9.]$/.test(e.key)) keyIn(e.key);
   else if(e.key==='Enter'){ if(S.entry!==null){ e.preventDefault(); enter(); } }
   else if(e.key==='Escape') clr();
+  else if(e.key==='m' || e.key==='M') toggleMute();
   else if(e.key==='Backspace' && S.entry!==null){ S.entry=S.entry.slice(0,-1); update(); }
   else if(e.key==='ArrowUp'){ e.preventDefault(); tune(1); spin(10); }
   else if(e.key==='ArrowDown'){ e.preventDefault(); tune(-1); spin(-10); }
