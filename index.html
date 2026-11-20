@@ -71,16 +71,21 @@ button{font-family:inherit}
 .btn.fn{font-size:13px;letter-spacing:1px}
 /* buton activ (MUTE, CLOCK, LOCK): literele se aprind în portocaliu */
 .btn.lit{color:#ffb04a;text-shadow:0 0 6px rgba(255,150,40,.55)}
-.btn.chbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.chbtn .nm{letter-spacing:1px;white-space:nowrap}
-.chbtn .fq{font:500 11px/1 "Barlow Condensed";letter-spacing:1px;color:#8d8f94}
-.btn.chbtn.on .fq{color:#c98a3f}
-.btn.tab{color:#bbb;background:linear-gradient(180deg,#2e3034,#1c1d20)}
-/* tab-ul / canalul selectat: se aprind doar literele în portocaliu – fără fundal colorat, fără punct */
-.btn.tab.on,.btn.chbtn.on{color:#ffb04a;text-shadow:0 0 6px rgba(255,150,40,.55)}
-.btn.tab.on::after,.btn.chbtn.on::after{display:none}
-.grp-lbl{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:3px;color:#cfcfcf;cursor:help}
-.grp-lbl::before,.grp-lbl::after{content:"";flex:1;height:1px;background:#4a4c51}
+/* dreapta, ca la receptoarele de unde scurte: chenare serigrafiate, taste mici, numele tipărit deasupra + LED */
+.pbox{position:absolute;margin:0;padding:0;border:1px solid #4a4c51;border-radius:6px;pointer-events:none}
+.pbox legend{margin:0 auto;padding:0 8px;font:600 11px/1 "Barlow Condensed";letter-spacing:3px;color:#cfcfcf}
+.slot{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;
+  background:none;border:none;cursor:pointer;color:#d9d9d9}
+.slot:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.slbl{display:flex;align-items:center;gap:5px;font:600 11px/1 "Barlow Condensed";letter-spacing:1.2px;white-space:nowrap}
+.sled{width:6px;height:6px;border-radius:50%;background:#2a1a0a;box-shadow:0 0 0 1px #000;transition:.15s}
+.slot.on .sled{background:#ff9a1f;box-shadow:0 0 0 1px #000,0 0 7px #ff8a10}
+.skey{display:flex;align-items:center;justify-content:center;width:62px;height:24px;border-radius:3px;
+  font:600 12px/1 "Barlow Condensed";color:#cfcfcf;background:linear-gradient(180deg,#36383d,#202125);
+  box-shadow:0 1px 0 rgba(255,255,255,.14) inset,0 -2px 0 rgba(0,0,0,.45) inset,0 2px 3px rgba(0,0,0,.7),0 0 0 1px #0a0a0b;
+  transition:transform .05s,filter .1s}
+.slot:hover .skey{filter:brightness(1.18)}
+.slot:active .skey{transform:translateY(1px);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 0 2px rgba(0,0,0,.8),0 0 0 1px #0a0a0b}
 .btn.power.idle{animation:pwrGlow 1.8s ease-in-out infinite}
 .hint b{color:#ff9a1f;font-weight:700}
 @keyframes pwrGlow{50%{box-shadow:0 0 0 2px #ff9a1f,0 0 18px 4px rgba(255,140,30,.5)}}
@@ -623,44 +628,59 @@ const fns=$('fns'), fnEls={};
 ].forEach(([n,fn,help],i)=>{ fnEls[n] = mkBtn(fns,{x:414+(i%3)*69,y:343+Math.floor(i/3)*50,w:62,h:40,cls:'fn',label:n,fn,title:n,help}); });
 
 const keys=$('keys');
-/* coloana din dreapta: sus tab-urile pe domenii, sub ele canalele – butoane mari, cu numele și frecvența.
+/* coloana din dreapta, ca la un receptor de unde scurte:
+   sus MEMORY – tastele 1…9 ale domeniului ales, cu numele postului tipărit deasupra și un LED care arată ce asculți;
+   jos BAND – domeniile (aviație, urgențe…), tot taste mici cu LED.
    (O frecvență oarecare se poate scrie în continuare de la tastatura calculatorului + Enter.) */
 const GROUPS = (CONFIG.groups && CONFIG.groups.length) ? CONFIG.groups : [{id:'*', name:'CANALE', info:''}];
 const grpOf = c => GROUPS.some(g=>g.id===c.group) ? c.group : GROUPS[0].id;
 S.grp = grpOf(nearest()); S.autoGrp = null;
-const RX = 634, RW = 342, RTOP = 48, RBOT = 466;          // zona din dreapta
-const tabCols = Math.min(3, GROUPS.length), tabRows = GROUPS.length<2 ? 1 : Math.ceil(GROUPS.length/tabCols);
-const tabGap = 10, tabH = 30, tabStep = 38;
-const chTop = RTOP + tabRows*tabStep + 12;
-// fiecare rând de tab-uri umple toată lățimea (ex. 5 domenii → 3 sus, 2 mai late jos)
-const tabPos = i => { const row=Math.floor(i/tabCols), n=Math.min(tabCols, GROUPS.length-row*tabCols), w=(RW-(n-1)*tabGap)/n;
-  return {x:RX+(i%tabCols)*(w+tabGap), y:RTOP+row*tabStep, w}; };
-const tabEls = GROUPS.length<2 ? [] : GROUPS.map((g,i)=>mkBtn(keys,{...tabPos(i),h:tabH,cls:'tab',
-  label:`<span style="font-size:12px;letter-spacing:1.5px;white-space:nowrap">${g.name}</span>`, title:g.name,
-  help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
-if(GROUPS.length<2){                     // o singură listă → doar un titlu, nu un buton
-  const l=document.createElement('div'); l.className='lbl grp-lbl'; l.textContent=GROUPS[0].name;
-  Object.assign(l.style,{left:RX+'px',top:(RTOP+6)+'px',width:RW+'px'}); keys.appendChild(l);
-  HELP.attach(l, {t:GROUPS[0].name, d:GROUPS[0].info});
+const RX = 634, RW = 342, COLS = 3, COLW = (RW-20)/COLS;
+const hasBands = GROUPS.length > 1;
+const MEM = {top:46, bot: hasBands ? 302 : 466}, BAND = {top:322, bot:456};
+function mkBox(top, bot, title){
+  const f=document.createElement('fieldset'); f.className='pbox';
+  Object.assign(f.style,{left:RX+'px',top:top+'px',width:RW+'px',height:(bot-top)+'px'});
+  f.innerHTML=`<legend>${title}</legend>`; keys.appendChild(f); return f.firstChild;
 }
-// 2 coloane de canale; rândurile se strâng doar dacă un tab are foarte multe canale
-const chCols = 2, chW = (RW - 10) / chCols;
-const chRowsMax = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/chCols)), 1);
-const chGap = Math.min(68, Math.floor((RBOT - chTop + 10) / chRowsMax)), chH = chGap - 10;
+function mkSlot({x,y,label,key,fn,title,help}){
+  const b=document.createElement('button'); b.className='slot';
+  Object.assign(b.style,{left:x+'px',top:y+'px',width:COLW+'px'});
+  b.innerHTML=`<span class="slbl"><i class="sled"></i>${label}</span><span class="skey">${key}</span>`;
+  b.addEventListener('click',fn); b.setAttribute('aria-label', title||label);
+  if(help) HELP.attach(b, help);
+  keys.appendChild(b); return b;
+}
+const SLOT_H = 47;                                        // 4 + nume 11 + 6 + tastă 24 + 4 – aproximativ
+// pune n taste pe 3 coloane, centrate pe verticală în chenar; ultimul rând incomplet e centrat pe orizontală
+function slotPos(i, n, box, rows){
+  const row=Math.floor(i/COLS), inRow=Math.min(COLS, n-row*COLS), col=i%COLS;
+  const step = Math.min(74, (box.bot-box.top-24)/rows);
+  const y0 = box.top + 16 + ((box.bot-box.top-16) - rows*step)/2 + (step-SLOT_H)/2;
+  return {x: RX + 10 + (COLS-inRow)*COLW/2 + col*COLW, y: y0 + row*step};
+}
+const memLegend = mkBox(MEM.top, MEM.bot, 'MEMORY');
+const memRows = Math.max(...GROUPS.map(g=>Math.ceil(CHANNELS.filter(c=>grpOf(c)===g.id).length/COLS)), 1);
 const chEls = CHANNELS.map(c=>{
-  const i = CHANNELS.filter(x=>grpOf(x)===grpOf(c)).indexOf(c);
-  const lbl = c.btn || c.mount.toUpperCase();
-  const fq = (c.nominal ? '≈ ' : '') + (c.f/1000).toFixed(3);
-  return mkBtn(keys,{x:RX+(i%chCols)*(chW+10),y:chTop+Math.floor(i/chCols)*chGap,w:chW,h:chH,cls:'chbtn',
-    label:`<span class="nm" style="font-size:${lbl.length>11?14:15.5}px">${lbl}</span>${chH>=40?`<span class="fq">${fq}</span>`:''}`,
+  const grp = CHANNELS.filter(x=>grpOf(x)===grpOf(c)), i = grp.indexOf(c);
+  return mkSlot({...slotPos(i, grp.length, MEM, memRows), label:c.btn || c.mount.toUpperCase(), key:i+1,
     title:c.name+' '+fmtF(c.f), help:chHelp(c),
     fn:()=>{ if(S.lock) return; if(!S.power) power(); S.freq=c.f; save(); update(); }});
 });
+let bandEls = [];
+if(hasBands){
+  mkBox(BAND.top, BAND.bot, 'BAND');
+  const bandRows = Math.ceil(GROUPS.length/COLS);
+  bandEls = GROUPS.map((g,i)=>mkSlot({...slotPos(i, GROUPS.length, BAND, bandRows), label:g.name, key:'',
+    title:g.name, help:{t:g.name, d:g.info}, fn:()=>{ S.grp=g.id; renderGroups(); }}));
+}
 function renderGroups(){
-  // tab-ul urmează canalul acordat (dar poți răsfoi alt tab fără să schimbi frecvența)
+  // banda urmează canalul acordat (dar poți răsfoi altă bandă fără să schimbi frecvența)
   const cg = S.ch ? grpOf(S.ch) : null;
   if(cg && cg!==S.autoGrp){ S.autoGrp = cg; S.grp = cg; }
-  tabEls.forEach((t,i)=>t.classList.toggle('on', GROUPS[i].id===S.grp));
+  const g = GROUPS.find(g=>g.id===S.grp);
+  memLegend.textContent = hasBands ? 'MEMORY · '+g.name : g.name;
+  bandEls.forEach((b,i)=>b.classList.toggle('on', GROUPS[i].id===S.grp));
   CHANNELS.forEach((c,i)=>{ chEls[i].style.display = grpOf(c)===S.grp ? '' : 'none'; chEls[i].classList.toggle('on', S.power && S.ch===c); });
 }
 
