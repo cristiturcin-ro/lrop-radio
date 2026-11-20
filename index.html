@@ -351,7 +351,25 @@ $('sdrOpen').addEventListener('click', e=>{
   const u = S.ch && SDR.openUrl(S.ch);
   if(u) window.open(u, '_blank', 'noopener');
 });
-const filterW = () => S.fil===1 ? 9 : S.fil===3 ? 4 : 6;     // kHz: cât de departe „prinzi” semnalul
+/* ceas: în stânga ora Bucureștiului, în dreapta ora locului ascultat (LCL) + diferența față de București */
+const HOME_TZ = CONFIG.homeTz || 'Europe/Bucharest', HOME_TAG = CONFIG.homeTag || 'BUC';
+const tzFmt = {};
+function tzParts(tz, d){
+  const f = tzFmt[tz] || (tzFmt[tz] = new Intl.DateTimeFormat('en-GB', {timeZone:tz, hourCycle:'h23',
+    year:'numeric', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'}));
+  const p = {}; f.formatToParts(d).forEach(x => p[x.type] = x.value);
+  p.off = Math.round((Date.UTC(+p.year, p.month-1, +p.day, +p.hour, +p.minute) - Math.floor(d/60000)*60000) / 60000); // min. față de UTC
+  return p;
+}
+const fmtDiff = m => !m ? '±0h' : (m>0?'+':'-') + Math.floor(Math.abs(m)/60) + (Math.abs(m)%60 ? ':'+pad2(Math.abs(m)%60) : '') + 'h';
+function clockText(){
+  const d = new Date(), h = tzParts(HOME_TZ, d);
+  let t = HOME_TAG+' '+h.hour+':'+h.minute+':'+h.second;
+  const tz = S.ch && S.ch.tz;
+  if(tz){ try{ const p = tzParts(tz, d); t += '  LCL '+p.hour+':'+p.minute+' '+fmtDiff(p.off - h.off); }catch(e){} }
+  return t;
+}
+const filterW = () =>S.fil===1 ? 9 : S.fil===3 ? 4 : 6;     // kHz: cât de departe „prinzi” semnalul
 const nearest = (f=S.freq) => CHANNELS.reduce((b,c)=>Math.abs(c.f-f)<Math.abs(b.f-f)?c:b);
 /* alege / schimbă stream-ul în funcție de frecvența acordată (cu mică întârziere când rotești dialul) */
 function retune(){
@@ -446,7 +464,7 @@ function update(){
   const fb = S.power && sdrFallback();
   if(S.err) t = 'OUT OF BAND';
   else if(S.entry!==null) t = 'ENTER MHz  ·  ENT';
-  else if(S.textMode===1){ const d=new Date(); t = 'UTC '+pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes())+':'+pad2(d.getUTCSeconds())+'  LCL '+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+  else if(S.textMode===1) t = clockText();
   else if(S.textMode===2) t = S.ch ? (chTag(S.ch)+': '+S.streamState) : 'NO FEED HERE';
   else {
     t = memName || (S.ch && S.ch.name) || (near && near.n) || (S.vfo?'VFO':'M'+pad2(S.mch+1));
@@ -624,7 +642,7 @@ const TIP = {
   af:    {t:'VOLUM (AF)', d:'Butonul mic din mijloc. Trage în sus/jos sau folosește rotița mouse-ului.'},
   sql:   {t:'SQUELCH (SQL)', d:'Inelul mare din jur. Taie fâșâitul când nu vorbește nimeni: la minim auzi tot zgomotul, mai sus e liniște până apare un semnal.'},
   dim:   {t:'LUMINOZITATE', d:'Cât de tare luminează afișajul.'},
-  clock: {t:'CEAS', d:'Arată pe afișaj ora UTC (ora folosită în aviație) și ora locală. Apasă din nou ca să revii la numele canalului.'},
+  clock: {t:'CEAS', d:'Arată ora Bucureștiului (BUC) și, în dreapta, ora locală (LCL) a locului pe care îl asculți, cu diferența față de București: +6h = acolo e cu 6 ore mai târziu, -8h = cu 8 ore mai devreme. Apasă din nou ca să revii la numele canalului.'},
   lock:  {t:'BLOCARE', d:'Blochează dialul și tastele, ca să nu schimbi frecvența din greșeală.'},
   dial:  {t:'DIAL DE ACORD', d:'Schimbă frecvența: trage în cerc sau folosește rotița mouse-ului. Se oprește singur pe fiecare canal. În modul MEM trece prin canalele salvate.', k:'Taste: [↑] [↓]'},
   STEP:  ()=>({t:'PAS DE ACORD', d:`Cât sare frecvența la fiecare pas al dialului: 25 → 5 → 1 kHz. Acum: ${S.step} kHz.`}),
