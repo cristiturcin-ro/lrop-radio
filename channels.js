@@ -28,7 +28,7 @@ window.RADIO_CONFIG = {
   groups: [
     { id:'AV', name:'AVIATION',  info:'Apropierea (APP) de la aeroporturi din lume – audio live de la LiveATC.' },
     { id:'EM', name:'EMERGENCY', info:'Pompieri, ambulanță, salvare montană – Perth (Australia) și British Columbia (Canada). Stream-uri directe WARSUG și ScanBC.' },
-    { id:'RS', name:'RAIL·SEA',  info:'Tren (Perth) și buletine meteo marine (coasta de vest a SUA).' },
+    { id:'RS', name:'RAIL·SEA',  info:'Tren (Perth), traficul radio din portul New York și buletine meteo marine (coasta de vest a SUA).' },
     { id:'WX', name:'WEATHER',   info:'NOAA Weather Radio: meteo și alerte citite non-stop, din SUA. Stream-uri directe wxradio.org.' },
     { id:'CW', name:'MORSE',     info:'Cod Morse transmis continuu, pentru exersare (morseops.com).' },
   ],
@@ -84,6 +84,9 @@ window.RADIO_CONFIG = {
     { f:160500, name:'PERTH RAIL',    btn:'PERTH RAIL',    group:'RS', tz:'Australia/Perth', nominal:true, source:'WARSUG',
       url:'https://stream.warsug.info/ZPerthRail',
       info:'Perth (Australia) – operațiunile trenurilor Transperth și poliția feroviară.' },
+    { f:156650, name:'NY HARBOR',     btn:'NY HARBOR',     group:'RS', tz:'America/New_York', nominal:true, source:'Broadcastify',
+      url:'https://broadcastify.cdnstream1.com/17329',
+      info:'Portul New York / New Jersey (SUA) – radio VHF marin live, oameni reali: cargouri, remorchere, feriboturi, vase de croazieră pe Hudson, East River și Newark Bay. Canalul 13 (156.650) e cel de lucru între nave; la pornire poate rula o reclamă scurtă (15-30 s).' },
     { f:162425, name:'PUGET SOUND MARINE', btn:'PUGET SOUND', group:'RS', tz:'America/Los_Angeles', source:'wxradio',
       url:'https://wxradio.bobc.io/stream/WWG24',
       info:'Seattle / strâmtoarea Puget Sound (SUA) – buletin meteo marin non-stop (NOAA WWG24), 162.425.' },
