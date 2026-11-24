@@ -200,6 +200,7 @@ button{font-family:inherit}
 <script src="sdr.js"></script>
 <script src="help.js"></script>
 <script src="keepalive.js"></script>
+<script src="vu.js"></script>
 <script>
 (() => {
 /* Configurarea (nume, canale, frecvențe) e în channels.js – comună cu versiunea de mobil. */
@@ -309,12 +310,27 @@ function initNoise(){
   }catch(e){ ctx=null; }
 }
 let streamToken=0;
-const onStream = (state) => () => { if(S.ch && audio.dataset.token==streamToken){ S.streamState=state; update(); } };
-audio.addEventListener('playing', onStream('LIVE'));
-audio.addEventListener('waiting', onStream('BUFFER'));
-audio.addEventListener('error',   onStream('NO LINK'));
+/* două playere: `audio` (simplu, merge cu orice server) și `audioX` (citit prin Web Audio → S-metru real,
+   doar pentru serverele care permit CORS, vezi vu.js). `cur` = cel care cântă acum. */
+const audioX = VU.element();
+let cur = audio;
+const noCors = new Set();          // canale la care citirea a eșuat → rămân pe playerul simplu
+const isReal = () => cur===audioX && !isSdr(S.ch);
+// dacă stream-ul citit nu pornește (server fără CORS / altă problemă), reîncearcă imediat pe playerul simplu
+function corsFail(tok){
+  if(tok!==streamToken || !S.ch || cur!==audioX || S.streamState==='LIVE') return false;
+  noCors.add(S.ch); connect(S.ch); return true;
+}
+audioX.addEventListener('error', () => { corsFail(+audioX.dataset.token); });
+const onStream = (el, state) => () => { if(S.ch && el===cur && el.dataset.token==streamToken){ S.streamState=state; update(); } };
+[audio, audioX].forEach(el => {
+  el.addEventListener('playing', onStream(el, 'LIVE'));
+  el.addEventListener('waiting', onStream(el, 'BUFFER'));
+  el.addEventListener('error',   onStream(el, 'NO LINK'));
+});
 // non-stop: repornește singur stream-ul dacă pică / se blochează (vezi keepalive.js)
-const keeper = KEEPALIVE.watch(audio, { active: () => S.power && !!S.ch && !isSdr(S.ch), reconnect: () => { if(S.ch) connect(S.ch); } });
+const keepers = [audio, audioX].map(el => KEEPALIVE.watch(el, { active: () => S.power && !!S.ch && !isSdr(S.ch) && cur===el, reconnect: () => { if(S.ch) connect(S.ch); } }));
+const keeper = { reset(){ keepers.forEach(k => k.reset()); } };
 document.addEventListener('visibilitychange', () => {
   if(document.visibilityState==='visible' && S.power && ctx && ctx.state==='suspended') ctx.resume();
 });
@@ -322,6 +338,10 @@ document.addEventListener('visibilitychange', () => {
 let connectT=null;
 // LiveATC: streamBase + mount; alte surse: url complet (stream direct MP3 / Icecast)
 const streamUrl = ch => ch.url ? ch.url : STREAM_BASE + ch.mount + '?t=' + Date.now();
+function stopEl(el){
+  el.dataset.token = -1;
+  if(el.getAttribute('src')){ el.pause(); el.removeAttribute('src'); el.load(); }
+}
 function connect(ch){
   if(isSdr(ch)){
     sdr.attach(ctx);
@@ -329,18 +349,21 @@ function connect(ch){
     return;
   }
   streamToken++;
-  audio.dataset.token = streamToken;
+  stopEl(audio); stopEl(audioX);
+  const url = streamUrl(ch);
+  const real = !noCors.has(ch) && VU.corsOk(url) && VU.attach(audioX, ctx);
+  cur = real ? audioX : audio;
+  cur.dataset.token = streamToken;
   S.streamState='CONNECT';
-  audio.src = streamUrl(ch);
-  audio.volume = 0;
+  cur.src = url;
+  if(real) VU.setVolume(0); else audio.volume = 0;
   const tok = streamToken;
-  audio.play().catch(()=>{ if(tok===streamToken){ S.streamState='NO LINK'; update(); } });
+  cur.play().catch(()=>{ if(tok===streamToken && !corsFail(tok)){ S.streamState='NO LINK'; update(); } });
 }
 function disconnect(){
   clearTimeout(connectT);
   streamToken++;
-  audio.dataset.token = -1;
-  audio.pause(); audio.removeAttribute('src'); audio.load();
+  stopEl(audio); stopEl(audioX);
   sdr.stop();
   S.streamState='OFF';
 }
@@ -391,15 +414,19 @@ function signal(){
 }
 function levels(){
   const sig = signal();
-  const live = S.streamState==='LIVE';
+  const live = S.streamState==='LIVE', real = isReal();
   const want = (S.ch && S.ch.mode) || BANDS[Math.max(0,bandIdx(S.freq))].mode;   // modul corect pentru semnalul acordat
   let sLvl = .04 + (S.pamp?.05:0);
   if(sig>0 && live){
     // receptor web: S-metrul arată nivelul real (dBm) raportat de KiwiSDR
-    const base = isSdr(S.ch) && sdr.dbm!=null ? SDR.meter(sdr.dbm, 12, 21.3, NBARS)*(.55+.45*sig) : .45 + .4*sig;
+    // stream citit prin Web Audio: S-metrul urmează sunetul real (vorbire ≈ S9, liniște ≈ S1)
+    const base = isSdr(S.ch) && sdr.dbm!=null ? SDR.meter(sdr.dbm, 12, 21.3, NBARS)*(.55+.45*sig)
+               : real ? VU.level()*(.55+.45*sig) : .45 + .4*sig;
     sLvl = Math.max(sLvl, base + (S.pamp?.08:0) - (S.att?.18:0));
   }
-  const open = S.sql < .03 || sLvl > S.sql*.9;
+  let open = S.sql < .03 || sLvl > S.sql*.9;
+  // cu nivel real, squelch-ul se deschide la fiecare transmisie și mai ține 0,8 s după ea
+  if(real && live){ const now = performance.now(); if(open) S.sqlHang = now + 800; else open = now < (S.sqlHang||0); }
   let n = 1 - (live ? sig*.95 : 0);
   if(S.mode!==want) n = Math.max(n,.7);
   if(S.pamp) n*=1.4; if(S.att) n*=.5; if(S.nb) n*=.8; if(S.nr) n*=.55; if(S.anf) n*=.9;
@@ -407,12 +434,12 @@ function levels(){
   const mf = S.mode===want ? 1 : S.mode==='FM' ? 0 : .35;
   const streamVol = (S.power && open && live && sig>0) ? af*sig*mf : 0;
   const noiseVol = (S.power && open) ? af*n*.22 : 0;
-  return {sig, sLvl, open, live, streamVol, noiseVol};
+  return {sig, sLvl, open, live, real, streamVol, noiseVol};
 }
 function applyAudio(){
   const L = levels();
   const v = Math.min(1, Math.max(0, L.streamVol));
-  audio.volume = isSdr(S.ch) ? 0 : v;
+  if(cur===audioX) VU.setVolume(isSdr(S.ch) ? 0 : v); else audio.volume = isSdr(S.ch) ? 0 : v;
   sdr.setVolume(isSdr(S.ch) ? v : 0);
   if(noiseGain) noiseGain.gain.setTargetAtTime(L.noiseVol, ctx.currentTime, .03);
   return L;
@@ -547,12 +574,12 @@ function tick(ts){
   if(ts-last<60) return; last=ts;
   if(!S.power){ S.level=0; needle.setAttribute('transform', `rotate(-42 ${MCX} ${MCY})`); drawScope(); return; }
   let L = S.lastL || levels();
-  if(isSdr(S.ch) && S.streamState==='LIVE'){        // nivel real de la receptor → S-metru + squelch live
+  if((isSdr(S.ch) || isReal()) && S.streamState==='LIVE'){   // nivel real (receptor web sau sunetul stream-ului) → S-metru + squelch live
     L = S.lastL = applyAudio();
     $('a-rx').classList.toggle('on', L.open && L.sig>0 && L.live);
   }
   let target = L.sLvl;
-  if(L.sig>0 && L.live) target += (Math.random()-.5)*.14;
+  if(L.sig>0 && L.live){ if(!L.real) target += (Math.random()-.5)*.14; }   // nivelul real nu mai are nevoie de „tremur” simulat
   else target = Math.random()*target*1.3;
   const k = S.agc==='F'?.55:S.agc==='S'?.15:1;
   S.level += (target-S.level)*k;
